@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace SelfCheckinWebApp.Enums
+{
+    public enum FeatureSwitchEnum
+    {
+        Turndown = 1,
+        PreAuth = 2,
+        DinnerReservation = 3,
+        CompleteMsg = 5,
+        IncorrectDetailsMsg = 6,
+        DinnerTimes = 7,
+        TCHotelLink = 8,
+        BkgCost = 9,
+        ExtrasAccount = 10,
+        PayingOnDepart = 11,
+        DinnerDisclaimer = 12
+    }
+}

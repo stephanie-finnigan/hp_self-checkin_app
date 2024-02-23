@@ -1,0 +1,57 @@
+﻿@using SelfCheckinWebApp.Enums
+@{
+    ViewBag.Title = "Pre-CheckIn Complete";
+    var site = ViewBag.site;
+    var mode = ViewBag.Mode;
+
+    var featureSwitchValues = ViewBag.featureSwitchValues;
+    var completeMsgVal = featureSwitchValues[FeatureSwitchEnum.CompleteMsg];
+}
+
+<div class="row-end-process">
+    <p>
+        @{
+            if (!string.IsNullOrEmpty(mode))
+            {
+                string msg = "Check-In Complete";
+                @(msg)
+            }
+            else
+            {
+                string[] result = completeMsgVal.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string str in result)
+                {
+                    @(str + ".")
+                    <br />
+                }
+            }
+        }
+    </p>
+</div>
+<br />
+<div class="btn-exit">
+    <button class="btn btn-primary" id="exitBtn" onclick="windowClose()">Close</button>
+</div>
+<br />
+<div class="row">
+    <img class="branding-image" src="~/Content/@site/logo.svg" />
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function windowClose() {
+            wait(1000);
+            window.open('', '_self', '');
+            window.close();
+        }
+
+        function wait(ms) {
+            var start = new Date().getTime();
+            var end = start;
+            while (end < start + ms) {
+                end = new Date().getTime();
+            }
+        }
+    </script>
+}

@@ -1,0 +1,980 @@
+﻿using NLog;
+using SelfCheckinWebApp.Helpers;
+using SelfCheckinWebApp.Interfaces;
+using SelfCheckinWebApp.Models;
+using SelfCheckinWebApp.Principal;
+using SelfCheckinWebApp.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using System.Web;
+using System.Web.Script.Serialization;
+using System.Web.Security;
+using System.Configuration;
+using System.Net;
+using SelfCheckinWebApp.DBModels;
+using SelfCheckinWebApp.Enums;
+using StackExchange.Profiling;
+using Microsoft.Owin.Security;
+
+namespace SelfCheckinWebApp.Controllers
+{
+    [Authorize]
+    public class CheckInController : Controller
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        private IAuthenticationManager AuthenticationManager => HttpContext.GetOwinContext().Authentication;
+
+        // GET
+        // Used as Login method
+        [AllowAnonymous]
+        public ActionResult Find(string returnUrl, int? id, string surname, string mode)
+        {
+            string siteName = Request.GetRequestSiteName();
+            Session["SiteName"] = siteName;
+            Session["Mode"] = mode;
+            log.Debug("Find: return Url {0}, siteName {1}", returnUrl, siteName);
+
+            if (ConfigurationManager.AppSettings.GetValues(siteName) == null)
+            {
+                ModelState.AddModelError("", "INVALID SITE NAME");
+                return View();
+            }
+            Session["IPAddress"] = ConfigurationManager.AppSettings[siteName];
+
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.ReservationId = id;
+            ViewBag.Surname = surname;
+            ViewBag.Mode = mode;
+
+            return View();
+        }
+
+        // POST: api/booking/id
+        // Login post method for authentication
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Find(int bookingId, string surname, string returnUrl, string siteName)
+        {
+            try
+            {
+                log.Debug("Find POST: bookingId {0}, surname {1}, returnUrl {2}, siteName {3}",
+                      bookingId, surname, returnUrl, siteName);
+
+                APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+                if (!ModelState.IsValid)
+                {
+                    log.Debug("ModelState.IsValid=false");
+                    ModelState.AddModelError("", "Invalid attempt to find booking.");
+                    return View();
+                }
+                else
+                {
+                    using (MiniProfiler.Current.Step("Checking if guest is locked out."))
+                    {
+                        if (UserLogins.IsUserLockedOut(bookingId.ToString()))
+                        {
+                            log.Debug("Guest is locked out.");
+                            ModelState.AddModelError("", string.Format("Your reservation number has been locked out for {0} minutes due to multiple failed attempts.", ConfigurationManager.AppSettings["MinutesUntilUserLockoutExpires"]));
+                            return View();
+                        }
+                    } 
+
+                    var bkg = await APIHelpers.LoadSingleFromAPI<Booking>("booking/" + bookingId + "?surname=" + surname);
+                    if ( bkg == null)
+                    {
+                        ModelState.AddModelError("", "Booking can not be found.");
+                        return View();
+                    }
+
+                    Console.WriteLine(LeveshteinDistance.Compute(bkg.Surname.ToLower(), surname.ToLower()));
+                    if (LeveshteinDistance.Compute(bkg.Surname.ToLower(), surname.ToLower()) >= 3)
+                    {
+                        log.Debug("Login failed - surname doesn't match");
+                        UserLogins.AddLoginFail(bookingId.ToString());
+                        ModelState.AddModelError("", "Booking could not be found. Surname does not match requested booking.");
+                        return View();
+                    }
+
+                    UserLogins.ResetUserLoginCount(bookingId.ToString());
+
+                    if ((bkg.Arrival - DateTime.UtcNow).TotalDays > 3)
+                    {
+                        log.Debug("Login failed - too early");
+                        ModelState.AddModelError("", "It is too early for you to check in using this reservation number. Check in will be available 3 days prior to arrival.");
+                        return View();
+                    }
+
+                    if (bkg.SubStateID >= 100)
+                    {
+                        log.Debug("Login failed - already prechecked in");
+                        ModelState.AddModelError("", "Pre check-in has been completed for this booking.");
+                        return View();
+                    }
+                    if (bkg.StateID >= 102)
+                    {
+                        log.Debug("Login failed - already fully checked in");
+                        ModelState.AddModelError("", "Check-in has been completed for this booking.");
+                        return View();
+                    }
+                    if ((DateTime.UtcNow.Date - bkg.Arrival.Date).Days >= 1)
+                    {
+                        log.Debug("Login failed = past arrival date");
+                        ModelState.AddModelError("", "Online check-in is not possible. Arrival date has passed.");
+                        return View();
+                    }
+
+                    GuestCheckInSerializeModel serializeModel = new GuestCheckInSerializeModel();
+                    serializeModel.BookingId = bookingId;
+                    serializeModel.Surname = bkg.Surname;
+                    serializeModel.ArrivalDate = bkg.Arrival;
+                    serializeModel.SiteName = siteName;
+
+                    JavaScriptSerializer serializer = new JavaScriptSerializer();
+                    string userData = serializer.Serialize(serializeModel);
+
+                    FormsAuthenticationTicket authTicket = new FormsAuthenticationTicket(
+                        1,
+                        bookingId.ToString(),
+                        DateTime.Now,
+                        DateTime.Now.AddMinutes(60),
+                        false,
+                        userData);
+
+                    string encTicket = FormsAuthentication.Encrypt(authTicket);
+                    HttpCookie faCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encTicket);
+                    Response.Cookies.Add(faCookie);
+
+                    var bkgSess = AutoMapper.Mapper.Map<BookingViewModel>(bkg);
+                    Session["currentBooking"] = bkgSess;
+
+                    log.Debug("Redirecting to " + returnUrl);
+                    return RedirectToAction("ContactDetails");
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+        }
+
+        ///// S1 VERIFY AND CONFIRM CONTACT DETAILS /////
+        public async Task<ActionResult> ContactDetails()
+        {
+            try
+            {
+                if (User == null)
+                {
+                    AuthenticationManager.SignOut();
+                    Session.Clear();
+                    return LogOffRedirect();
+                }
+                else
+                {
+                    log.Debug("ContactDetails - id {0}, siteName {1}", User.BookingId, User.SiteName);
+
+                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                    if (bkgSess == null)
+                    {
+                        string siteName = Request.GetRequestSiteName();
+                        Session["IPAddress"] = ConfigurationManager.AppSettings[siteName];
+                        APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+                        var bkg = await APIHelpers.LoadSingleFromAPI<Booking>("booking/" + User.BookingId + "?surname=" + User.Surname);
+                        if (bkg == null)
+                        {
+                            log.Error("Booking not found with authTicket.");
+                            return new HttpStatusCodeResult(HttpStatusCode.InternalServerError);
+                        }
+                        bkgSess = AutoMapper.Mapper.Map<BookingViewModel>(bkg);
+                        Session["currentBooking"] = bkgSess;
+                    }
+                    ViewBag.SiteName = Session["SiteName"];
+                    ViewBag.Mode = Session["Mode"];
+                    return View("ContactDetails", bkgSess);
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Log off method for Back button on above view page.
+        /// Button is only visible in 'Self' mode.
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult LogOffRedirect()
+        {
+            FormsAuthentication.SignOut();
+            Session.Abandon();
+
+            return RedirectToAction("Find", "CheckIn");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public JsonResult SaveEditedContactProfile(EditContactProfilePostParam editedProfile)
+        {
+            IAddress address = null;
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var editedCP = AutoMapper.Mapper.Map<ContactProfile>(editedProfile);
+                    Session["editedContactProfile"] = editedCP;
+
+                    // We need the address later
+                    address = editedCP.Address;
+                }
+
+                return Json(new
+                {
+                    GetDisplayAddress = address == null ? "" : address.ToDisplayString(),
+                    Email1 = editedProfile.Email1,
+                    Telephone = editedProfile.Telephone,
+                    Mobile = editedProfile.Mobile
+                });
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult NotYouQuestion(string Answer)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (Answer == "Yes")
+                    {
+                        return RedirectToAction("BookingDetails");
+                    }
+                    else if (Answer == "No")
+                    {
+                        return RedirectToAction("CreateNewContact");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return View("ContactDetails");
+        }
+
+        ///// S1a CREATE NEW CONTACT FOR BOOKING /////
+        public ActionResult CreateNewContact()
+        {
+            var newContact = NewContact();
+            newContact.Titles = GetContactTitles();
+            newContact.MarketingPreferences = GetAllMarketingPreferences();
+
+            ViewBag.SiteName = User.SiteName;
+            return PartialView("_CreateNewContactPartial", newContact);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult StoreNewContact(ContactViewModel additionalContact)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                    additionalContact.BookingID = bkgSess.BookingID;
+                    additionalContact.MarketingPermissionSought = true;
+                    additionalContact.Interests = new List<LookupItemViewModel>();
+
+                    foreach (var profile in additionalContact.Profiles)
+                    {
+                        if (profile.IsBusinessAddr == true)
+                        {
+                            profile.ProfileID = 101;
+                        }
+                        else
+                        {
+                            profile.ProfileID = 100;
+                        }
+                    }
+                    foreach (var item in additionalContact.MarketingPreferences)
+                    {
+                        if (item.PrefSelected == true)
+                        {
+                            additionalContact.Interests.Add(item);
+                        }
+                    }
+                    bkgSess.NewContact = additionalContact;
+
+                    Session["currentBooking"] = bkgSess;
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return RedirectToAction("BookingDetails");
+        }
+
+        ///// S2 VERIFY AND CONFIRM BOOKING DETAILS /////
+        public ActionResult BookingDetails()
+        {
+            var bkgSess = (BookingViewModel)Session["currentBooking"];
+            ViewBag.Mode = Session["Mode"];
+
+            return View("BookingDetails", bkgSess);
+        }
+
+        [HttpPost]
+        public ActionResult ConfirmBookingDetails(string Answer)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (Answer == "Yes")
+                    {
+                        return RedirectToAction("InternationalDetails");
+                    }
+                    else if (Answer == "No")
+                    {
+                        using (var db = new GuestCheckInDBContext())
+                        {
+                            LogOff();
+                            ViewBag.featureSwitchValues = db.GetFeatureSwitchValuesForSite(User.SiteName);
+                            ViewBag.site = User.SiteName;
+                            return View("_EndCheckInProcessPartial");
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return View("BookingDetails");
+        }
+
+        ///// S3 INTERNATIONAL/PASSPORT CHECK /////
+        public ActionResult InternationalDetails()
+        {
+            var bkgSess = (BookingViewModel)Session["currentBooking"];
+            var model = new InternationalDetailsViewModel
+            {
+                BookingId = bkgSess.BookingID,
+                BookingRmNo = bkgSess.FirstNightRoomNo
+            };
+
+            ViewBag.Mode = Session["Mode"];
+            return View("InternationalDetails", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult InternationalDetails(InternationalDetailsViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (model.Answer == "Yes")
+                    {
+                        var passportInfo = new PassportInformation
+                        {
+                            PassportNum = model.PassportNum,
+                            IssuingAuthority = model.IssuingAuthority,
+                            Nationality = model.Nationality
+                        };
+                        Session["passportInfo"] = passportInfo;
+                        return RedirectToAction("NewspapersAlarmCalls");
+                    }
+                    else if (model.Answer == "No")
+                    {
+                        return RedirectToAction("NewspapersAlarmCalls");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return View(model);
+        }
+
+        ///// S4 NEWSPAPERS & ALARM CALLS /////
+        public ActionResult NewspapersAlarmCalls()
+        {
+            var bkgSess = (BookingViewModel)Session["currentBooking"];
+            var StayDatesList = GetStayDates(bkgSess)
+                                    .Select(s => new SelectListItem
+                                    {
+                                        Value = s.ToShortDateString(),
+                                        Text = s.ToString("ddd dd/MM/yy")
+                                    }).ToList();
+            bkgSess.AddNewspapers = new AddNewspapersViewModel
+            {
+                BookingID = bkgSess.BookingID,
+                StayDatesSelect = StayDatesList,
+                StayDates = (List<DateTime>)Session["StayDates"]
+            };
+            bkgSess.AddAlarmCall = new AddAlarmCallViewModel
+            {
+                BookingID = bkgSess.BookingID,
+                StayDatesSelect = StayDatesList
+            };
+            ViewBag.AlarmTimes = GetAlarmTimesList();
+            ViewBag.Mode = Session["Mode"];
+
+            return View("NewspapersAlarmCalls", bkgSess);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <returns></returns>
+        public async Task<JsonResult> FillPapers(AddNewspapersViewModel Model)
+        {
+            var PaperLists = await GetNewspaperLists();
+
+            var date = DateTime.Parse(Model.DateSelected);
+
+            if (date.DayOfWeek == DayOfWeek.Monday || date.DayOfWeek == DayOfWeek.Tuesday || date.DayOfWeek == DayOfWeek.Wednesday ||
+                date.DayOfWeek == DayOfWeek.Thursday || date.DayOfWeek == DayOfWeek.Friday)
+            {
+                Model.Newspapers = PaperLists.DailyNewspapers;
+            }
+            else if (date.DayOfWeek == DayOfWeek.Saturday)
+            {
+                Model.Newspapers = PaperLists.SaturdayNewspapers;
+            }
+            else if (date.DayOfWeek == DayOfWeek.Sunday)
+            {
+                Model.Newspapers = PaperLists.SundayNewspapers;
+            }
+
+            Session["PaperList"] = Model.Newspapers;
+
+            return Json(Model.Newspapers, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddNewspaper(AddNewspapersViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var PaperList = (List<NewspaperViewModel>)Session["PaperList"];
+                    var StayDates = (List<DateTime>)Session["StayDates"];
+                    
+                    if (model.SameDaily == true)
+                    {
+                        foreach (var id in model.SelectedPapers)
+                        {
+                            foreach (var paper in PaperList)
+                            {
+                                if (id == paper.NewspaperID)
+                                {
+                                    foreach (var date in StayDates)
+                                    {
+                                        if (date.DayOfWeek == DayOfWeek.Monday || date.DayOfWeek == DayOfWeek.Tuesday || date.DayOfWeek == DayOfWeek.Wednesday ||
+                                            date.DayOfWeek == DayOfWeek.Thursday || date.DayOfWeek == DayOfWeek.Friday)
+                                        {
+                                            var newspaper = new NewspaperViewModel()
+                                            {
+                                                NewspaperID = paper.NewspaperID,
+                                                Description = paper.Description,
+                                                NewspaperDate = date
+                                            };
+
+                                            var bkgSess = (BookingViewModel)Session["currentBooking"];
+                                            newspaper.BookingID = bkgSess.BookingID;
+                                            bkgSess.Newspapers.Add(newspaper);
+                                            Session["currentBooking"] = bkgSess;
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var id in model.SelectedPapers)
+                        {
+                            foreach (var paper in PaperList)
+                            {
+                                if (id == paper.NewspaperID)
+                                {
+                                    var newspaper = new NewspaperViewModel()
+                                    {
+                                        NewspaperID = paper.NewspaperID,
+                                        Description = paper.Description,
+                                        NewspaperDate = DateTime.Parse(model.DateSelected)
+                                    };
+
+                                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                                    newspaper.BookingID = bkgSess.BookingID;
+                                    bkgSess.Newspapers.Add(newspaper);
+                                    Session["currentBooking"] = bkgSess;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return RedirectToAction("NewspapersAlarmCalls");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddAlarmCall(AddAlarmCallViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    DateTime callDate = DateTime.Parse(model.SelectedDate);
+                    DateTime callTime = DateTime.ParseExact(model.SelectedTime, "hh:mm tt", CultureInfo.InvariantCulture);
+                    DateTime callCombined = callDate.Date.Add(callTime.TimeOfDay);
+
+                    var alarmCall = new GuestReminderViewModel()
+                    {
+                        BookingID = model.BookingID,
+                        Time = callCombined,
+                        ReminderType = GuestReminderViewModel.eReminderType.AlarmCall
+                    };
+
+                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                    bkgSess.GuestReminders.Add(alarmCall);
+                    Session["currentBooking"] = bkgSess;
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return RedirectToAction("NewspapersAlarmCalls");
+        }
+
+        ///// STEP 5 DINNER RESERVATION QUESTION AND FORM /////
+        public ActionResult DinnerReservation()
+        {
+            using (var db = new GuestCheckInDBContext())
+            {
+                if (db.IsFeatureSwitchOn(FeatureSwitchEnum.DinnerReservation, User.SiteName))
+                {
+                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                    ViewBag.Mode = Session["Mode"];
+                    return View("DinnerReservation", bkgSess);
+                }
+                else
+                {
+                    return RedirectToAction("BookingExtras");
+                }
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DinnerYesNoQues(string Answer)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (Answer == "Yes")
+                    {
+                        return RedirectToAction("DinnerReservationForm");
+                    }
+                    else if (Answer == "No")
+                    {
+                        return RedirectToAction("BookingExtras");
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return View();
+        }
+
+        public async Task<ActionResult> DinnerReservationForm()
+        {
+            var bkgSess = (BookingViewModel)Session["currentBooking"];
+            var StayDatesList = GetFullStayDates(bkgSess)
+                                    .Select(s => new SelectListItem
+                                    {
+                                        Value = s.ToShortDateString(),
+                                        Text = s.ToString("ddd dd/MM/yy")
+                                    }).ToList();
+
+            var ReservationForm = new DinnerReservationsViewModel
+            {
+                Booking = bkgSess,
+                Restaurants = await GetSiteRestaurants(),
+                Times = GetDinnerTimesList(),
+                StayDatesSelect = StayDatesList
+            };
+            ViewBag.Mode = Session["Mode"];
+            return View("DinnerReservationForm", ReservationForm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DinnerReservationForm(DinnerReservationsViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var bkgSess = (BookingViewModel)Session["currentBooking"];
+                    model.DinnerReservation = new DinnerReservationViewModel
+                    {
+                        BookingID = bkgSess.BookingID,
+                        Restaurant = model.Restaurant,
+                        NumPersons = model.NumPersons,
+                        DinnerDate = DateTime.Parse(model.SelectedDate),
+                        DinnerTime = DateTime.ParseExact(model.SelectedTime, "HH:mm", CultureInfo.InvariantCulture)
+                    };
+                    
+                    bkgSess.DinnerReservations.Add(model.DinnerReservation);
+                    Session["currentBooking"] = bkgSess;
+                }
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+            return RedirectToAction ("DinnerReservationForm");
+        }
+
+        ///// STEP 6 EXTRAS: VEHICLE REG, NOTES, ETA, TURNDOWN, INVOICE, FAST CHECKOUT /////
+        public ActionResult BookingExtras()
+        {
+            using (var db = new GuestCheckInDBContext())
+            {
+                var bkgSess = (BookingViewModel)Session["currentBooking"];
+                ViewBag.EtaTimes = GetEtaTimesList();
+                ViewBag.FeatureSwitchValues = db.GetFeatureSwitchValuesForSite(User.SiteName);
+                ViewBag.Mode = Session["Mode"];
+
+                return View("BookingExtras", bkgSess);
+            } 
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddExtras(BookingExtrasPostParam extras)
+        {
+            var bkgSess = (BookingViewModel)Session["currentBooking"];
+            bkgSess.VehicleRegistration = extras.VehicleRegistration;
+            bkgSess.CheckInNotes = extras.CheckInNotes;
+            if (extras.SelectedETA != null)
+            {
+                bkgSess.ETA = DateTime.ParseExact(extras.SelectedETA, "HH:mm", CultureInfo.InvariantCulture);
+            }
+            bkgSess.TurndownReqd = extras.AnswerTD;
+            bkgSess.SendInvoice = extras.AnswerSI;
+            bkgSess.FastCheckout = extras.FastCheckout;
+
+            Session["currentBooking"] = bkgSess;
+
+            return RedirectToAction("CompleteCheckIn");
+        }
+
+        ///// S6 MARKETING AND FINAL QUESTION /////
+        public ActionResult CompleteCheckIn()
+        {
+            using (var db = new GuestCheckInDBContext())
+            {
+                var bkgVM = (BookingViewModel)Session["currentBooking"];
+                bkgVM.Contact.MarketingPreferences = GetAllMarketingPreferences();
+
+                if (bkgVM.Contact.Interests != null && bkgVM.Contact.Interests.Any())
+                {
+                    foreach (var mp in bkgVM.Contact.MarketingPreferences.Where(mp => bkgVM.Contact.Interests.Any(i => i.CodeField == mp.CodeField)))
+                    {
+                        mp.PrefSelected = true;
+                    }
+                }
+
+                ViewBag.newContact = bkgVM.NewContact;
+                ViewBag.Site = User.SiteName;
+                ViewBag.Mode = Session["Mode"];
+                ViewBag.FeatureSwitchValues = db.GetFeatureSwitchValuesForSite(User.SiteName);
+
+                return View("CompleteCheckIn", bkgVM);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> CompleteCheckIn(BookingViewModel bkg)
+        {
+            using (var db = new GuestCheckInDBContext())
+            {
+                APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+                var bkgSess = (BookingViewModel)Session["currentBooking"];
+                var mode = (string)Session["Mode"];
+                bkgSess.TermsAgree = bkg.TermsAgree;
+                bkgSess.CheckInMode = mode;
+
+                if (bkgSess.Contact.MarketingPermissionSought == false)
+                {
+                    bkgSess.Contact.MarketingPermissionSought = true;
+                }
+                if (bkg.Contact != null)
+                {
+                    foreach (var mp in bkg.Contact.MarketingPreferences)
+                    {
+                        if (mp.PrefSelected == true && !bkgSess.Contact.Interests.Contains(mp))
+                        {
+                            // If conditions met, mp is added to Interests List
+                            bkgSess.Contact.Interests.Add(mp);
+                        }
+                        if (mp.PrefSelected == false && bkgSess.Contact.Interests.Contains(mp))
+                        {
+                            // If conditions met, mp is removed from Interests List
+                            bkgSess.Contact.Interests.Remove(mp);
+                        }
+                    }
+                }
+
+                var passportInfo = (PassportInformation)Session["passportInfo"];
+                if (passportInfo != null)
+                {
+                    bkgSess.CheckInNotes = bkgSess.CheckInNotes + " Passport Information: " + passportInfo.PassportNum + ", " +
+                    passportInfo.IssuingAuthority + ", " + passportInfo.Nationality;
+                    Console.WriteLine(bkgSess.CheckInNotes);
+                }
+
+                // Save Edited Contact Profile
+                var editedCP = (ContactProfile)Session["editedContactProfile"];
+                if (editedCP != null)
+                {
+                    await APIHelpers.PutSingleToAPI("updateContactProfile", editedCP);
+                }
+
+                try
+                {
+                    // Save Guest Booking
+                    var booking = AutoMapper.Mapper.Map<Booking>(bkgSess);
+                    await APIHelpers.PutSingleToAPI("updateBooking", booking);
+
+                    LogOff();
+                    ViewBag.featureSwitchValues = db.GetFeatureSwitchValuesForSite(User.SiteName);
+                    ViewBag.site = User.SiteName;
+                    ViewBag.Mode = Session["Mode"];
+                    return View("_PreCheckInComplete");
+                }
+                catch (Exception e)
+                {
+                    log.Error(e);
+                    throw;
+                }
+            }
+        }
+
+        // /CheckIn/LogOff
+        public void LogOff()
+        {
+            FormsAuthentication.SignOut();
+            Session.Abandon();
+        }
+
+        // 
+        private ContactViewModel NewContact()
+        {
+            ContactViewModel newContact = new ContactViewModel();
+            newContact.AdditionalProfile = new ContactProfileViewModel();
+            newContact.AdditionalProfile.Address = new AddressViewModel();
+            newContact.Profiles = new List<ContactProfileViewModel>();
+            newContact.Profiles.Add(newContact.AdditionalProfile);
+
+            return newContact;
+        }
+
+        private List<SelectListItem> GetContactTitles()
+        {
+            return new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Miss", Text = "Miss" },
+                new SelectListItem { Value = "Ms", Text = "Ms" },
+                new SelectListItem { Value = "Mrs", Text = "Mrs" },
+                new SelectListItem { Value = "Mr", Text = "Mr" },
+                new SelectListItem { Value = "Dr", Text = "Dr" }
+            };
+        }
+
+        private List<LookupItemViewModel> GetAllMarketingPreferences()
+        {
+            return new List<LookupItemViewModel>
+            {
+                new LookupItemViewModel { Description = "Email", CodeField = ApiConstants.LookupItemCodeEmail },
+                new LookupItemViewModel { Description = "Post", CodeField = ApiConstants.LookupItemCodePost },
+                new LookupItemViewModel { Description = "Telephone", CodeField = ApiConstants.LookupItemCodeTel },
+                new LookupItemViewModel { Description = "SMS", CodeField = ApiConstants.LookupItemCodeSMS }
+            };
+        }
+
+        private List<DateTime> GetStayDates(BookingViewModel bkg)
+        {
+            List<DateTime> Dates = new List<DateTime>();
+            int count = 0;
+            for (DateTime date = bkg.Arrival; date <= bkg.Depart; date = date.AddDays(1))
+            {
+                if (count > 0)
+                {
+                    Dates.Add(date);
+                }
+                count += 1;
+            }
+            Session["StayDates"] = Dates;
+
+            return Dates;
+        }
+
+        private List<DateTime> GetFullStayDates(BookingViewModel bkg)
+        {
+            List<DateTime> Dates = new List<DateTime>();
+            for (DateTime date = bkg.Arrival; date <= bkg.Depart; date = date.AddDays(1))
+            {
+                Dates.Add(date);
+            }
+            Session["FullStayDates"] = Dates;
+            return Dates;
+        }
+
+        private async Task<CachedNewspaperLists> GetNewspaperLists()
+        {
+            if (Session["PaperLists"] != null)
+            {
+                var PaperLists = new CachedNewspaperLists();
+
+                PaperLists = (CachedNewspaperLists)Session["PaperLists"];
+                return PaperLists;
+            }
+            else
+            {
+                APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+                var PaperLists = new CachedNewspaperLists();
+
+                var dPprs = await APIHelpers.LoadListFromAPI<Newspaper>("dailyPapers");
+                PaperLists.DailyNewspapers = AutoMapper.Mapper.Map<List<NewspaperViewModel>>(dPprs);
+
+                var satPprs = await APIHelpers.LoadListFromAPI<Newspaper>("satPapers");
+                PaperLists.SaturdayNewspapers = AutoMapper.Mapper.Map<List<NewspaperViewModel>>(satPprs);
+
+                var sunPprs = await APIHelpers.LoadListFromAPI<Newspaper>("sunPapers");
+                PaperLists.SundayNewspapers = AutoMapper.Mapper.Map<List<NewspaperViewModel>>(sunPprs);
+
+                Session["PaperLists"] = PaperLists;
+                return (CachedNewspaperLists)Session["PaperLists"];
+            } 
+        }
+
+        private List<string> GetAlarmTimesList()
+        {
+            string stt = "06:00 AM";
+            string ed = "10:00 AM";
+
+            DateTime start = DateTime.ParseExact(stt, "hh:mm tt", null);
+            DateTime end = DateTime.ParseExact(ed, "hh:mm tt", null);
+
+            int interval = 15;
+            List<string> TimeIntervalsList = new List<string>();
+            for (DateTime i = start; i < end; i = i.AddMinutes(interval))
+            {
+                TimeIntervalsList.Add(i.ToString("hh:mm tt"));
+            }
+            return TimeIntervalsList;
+        }
+
+        private async Task<List<SelectListItem>> GetSiteRestaurants()
+        {
+            APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+            var restTimes = await APIHelpers.LoadListFromAPI<RestaurantTime>("restaurantDinners");
+            var restTimesVM = AutoMapper.Mapper.Map<List<RestaurantTimeViewModel>>(restTimes);
+
+            List<SelectListItem> restTimesSL = new List<SelectListItem>();
+            foreach (var rest in restTimesVM)
+            {
+                restTimesSL.Add(new SelectListItem { Text = rest.RestaurantName, Value = rest.RestaurantName });
+            }
+            return restTimesSL;
+        }
+
+        private List<SelectListItem> GetDinnerTimesList()
+        {
+            using (var db = new GuestCheckInDBContext())
+            {
+                List<SelectListItem> dinnerTimesSL = new List<SelectListItem>();
+
+                var featureSwitchValues = db.GetFeatureSwitchValuesForSite(User.SiteName);
+                var dinnerTimes = featureSwitchValues[FeatureSwitchEnum.DinnerTimes];
+
+                string[] times = dinnerTimes.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+                dinnerTimesSL = times.Select(t => new SelectListItem { Text = t, Value = t }).ToList();
+
+                return dinnerTimesSL;
+            }
+        }
+
+        private List<string> GetEtaTimesList()
+        {
+            string stt = "02:00 PM";
+            string ed = "10:15 PM";
+
+            DateTime start = DateTime.ParseExact(stt, "hh:mm tt", null);
+            DateTime end = DateTime.ParseExact(ed, "hh:mm tt", null);
+
+            int interval = 15;
+            List<string> TimeIntervalsList = new List<string>();
+            for (DateTime i = start; i < end; i = i.AddMinutes(interval))
+            {
+                TimeIntervalsList.Add(i.ToString("HH:mm"));
+            }
+            return TimeIntervalsList;
+        }
+
+        protected virtual new GuestCheckInPrincipal User
+        {
+            get { return HttpContext.User as GuestCheckInPrincipal; }
+        }
+    }
+}

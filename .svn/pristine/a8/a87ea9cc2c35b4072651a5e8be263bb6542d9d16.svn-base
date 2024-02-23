@@ -1,0 +1,58 @@
+﻿@model SelfCheckinWebApp.ViewModels.DinnerReservationsViewModel
+
+@{
+    ViewBag.Title = "DinnerReservationForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.Booking.BookingID)
+        @Html.DisplayFor(model => model.Booking.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.Booking.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.Booking.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+<div class="resvn-form-title">Add Dinner Reservation</div>
+
+@Html.Partial("_AddReservationPartial", Model)
+<div class="reservns-container">
+    <table class="table">
+        <tbody>
+            @foreach (var res in Model.Booking.DinnerReservations)
+            {
+                <tr>
+                    <td>
+                        @res.DinnerDate.ToShortDateString()
+                    </td>
+                    <td>
+                        @res.Restaurant
+                    </td>
+                    <td>
+                        @res.DinnerTime.ToShortTimeString()
+                    </td>
+                    <td>
+                        @res.NumPersons
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<hr />
+<footer>
+    <div class="back-btn">
+        @Html.ActionLink("Back", "DinnerReservation", "CheckIn", new { @class = "btn btn-primary" })
+    </div>
+    <div class="proceed-btn">
+        @Html.ActionLink("Proceed", "BookingExtras", "CheckIn", new { @class = "btn btn-primary" })
+    </div>
+</footer>

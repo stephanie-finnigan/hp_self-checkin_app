@@ -1,0 +1,77 @@
+﻿@model SelfCheckinWebApp.ViewModels.DinnerReservationsViewModel
+@using SelfCheckinWebApp.Enums
+@{
+    ViewBag.Title = "DinnerReservationForm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var featureSwitchValues = ViewBag.featureSwitchValues;
+    var dinnerDisclaimerVal = featureSwitchValues[FeatureSwitchEnum.DinnerDisclaimer];
+    var mode = ViewBag.Mode;
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.Booking.BookingID)
+        @Html.DisplayFor(model => model.Booking.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.Booking.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.Booking.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+<div class="resvn-form-title">Dinner Reservations</div>
+
+@Html.Partial("_AddReservationPartial", Model)
+<br />
+<div class="reservns-container">
+    <table class="table table-resvns">
+        <tbody>
+            @foreach (var res in Model.Booking.DinnerReservations)
+            {
+                <tr>
+                    <td></td>
+                    <td>
+                        @res.DinnerDate.ToShortDateString()
+                    </td>
+                    <td>
+                        @res.Restaurant
+                    </td>
+                    <td>
+                        @res.DinnerTime.ToShortTimeString()
+                    </td>
+                    <td>
+                        @res.NumPersons
+                    </td>
+                    <td>
+                        @Html.ActionLink("Del", "DeleteReservation", "CheckIn", new { date = res.DinnerDate }, new { @class = "btn btn-primary" })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="dinner-disclr">
+    <p>
+        @dinnerDisclaimerVal
+    </p>
+</div>
+<hr />
+<footer>
+    <div class="back-btn">
+        @if (Model.Booking.DinnerReservations != null)
+        {
+            @Html.ActionLink("Back", "NewspapersAlarmCalls", "CheckIn", new { @class = "btn btn-primary" })
+        }
+        else
+        {
+            @Html.ActionLink("Back", "DinnerReservation", "CheckIn", new { @class = "btn btn-primary" })
+        }
+    </div>
+    <div class="proceed-btn">
+        @Html.ActionLink("Proceed", "BookingExtras", "CheckIn", new { @class = "btn btn-primary" })
+    </div>
+</footer>

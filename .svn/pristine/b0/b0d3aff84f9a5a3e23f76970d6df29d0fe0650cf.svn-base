@@ -1,0 +1,75 @@
+﻿@model SelfCheckinWebApp.ViewModels.BookingViewModel
+@using SelfCheckinWebApp.Enums
+@{
+    ViewBag.Title = "Complete Check-In";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+    var site = ViewBag.Site;
+    var newContact = ViewBag.newContact;
+    var featureSwitchValues = ViewBag.FeatureSwitchValues;
+    var tAndCLink = featureSwitchValues[FeatureSwitchEnum.TCHotelLink];
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.BookingID)
+        @Html.DisplayFor(model => model.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+
+@using (Html.BeginForm("CompleteCheckIn", "CheckIn", FormMethod.Post, new { @class = "marktg-final form-horizontal" }))
+{
+    @Html.AntiForgeryToken()
+    
+    if (newContact == null)
+    {
+        <div class="gdpr-title">
+            @if (Model.Contact.MarketingPermissionSought == false)
+            {
+                <h4>How would you like to be contacted in the future?</h4>
+            }
+            else
+            {
+                <h4>Update Marketing Preferences</h4>
+            }
+        </div>
+        <div class="row-gdpr">
+            <div class="col-xs-12 col-md-12">
+                @for (int i = 0; i < Model.Contact.MarketingPreferences.Count; i++)
+                {
+                    <div class="checkbox-inline">
+                        @Html.CheckBoxFor(model => model.Contact.MarketingPreferences[i].PrefSelected)
+                        @Html.LabelFor(model => model.Contact.MarketingPreferences[i].PrefSelected, Model.Contact.MarketingPreferences[i].Description)
+                        @Html.HiddenFor(model => model.Contact.MarketingPreferences[i].CodeField)
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    <div class="terms-agree">
+        <div class="form-group">
+            <div class="checkbox-inline">
+                @Html.CheckBoxFor(model => model.TermsAgree)
+                <label class="control-label">I Agree to Hotel <a href="@tAndCLink">Terms & Conditions</a></label>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <footer>
+        <div class="back-btn">
+            @Html.ActionLink("Back", "BookingExtras", "CheckIn", new { @class = "btn btn-primary" })
+        </div>
+        <div class="proceed-btn">
+            <input type="submit" value="Check In" class="btn btn-primary" />
+        </div>
+    </footer>
+}

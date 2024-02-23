@@ -1,0 +1,180 @@
+﻿@model SelfCheckinWebApp.ViewModels.BookingViewModel
+@{
+    ViewBag.Title = "Booking Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.BookingID)
+        @Html.DisplayFor(model => model.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+<div class="details-header">
+    <div class="details-title">Booking Details</div>
+</div>
+<div class="booking-info">
+    <div class="row">
+        <div class="col-xs-6 col-md-6">
+            @Html.LabelFor(model => model.Arrival)
+            <div class="detail">
+                @Html.DisplayFor(model => model.Arrival)
+            </div>
+        </div>
+        <div class="col-xs-6 col-md-6">
+            @Html.LabelFor(model => model.Depart)
+            <div class="detail">
+                @Html.DisplayFor(model => model.Depart)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            @Html.LabelFor(model => model.NightsTotal)
+            <div class="detail">
+                @Html.DisplayFor(model => model.NightsTotal)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="@(Model.Child == 0 ? "col-xs-6 col-md-6" : "col-xs-3 col-md-4")">
+            @Html.LabelFor(model => model.Adults)
+            <div class="detail">
+                @Html.DisplayFor(model => model.Adults)
+            </div>
+        </div>
+        <div class="@(Model.Child == 0 ? "col-xs-6 col-md-6" : "col-xs-4 col-md-4")">
+            @Html.LabelFor(model => model.Child)
+            <div class="detail">
+                @Html.DisplayFor(model => model.Child)
+            </div>
+        </div>
+        @if (Model.Child != 0)
+        {
+            <div class="col-xs-5 col-md-4">
+                @Html.LabelFor(model => model.ChildAges)
+                <div class="detail">
+                    @if (string.IsNullOrEmpty(Model.ChildAges))
+                    {
+                        @Html.Raw("None")
+                    }
+                    else
+                    {
+                        @Html.DisplayFor(model => model.ChildAges)
+                    }
+                </div>
+            </div>
+        }
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            @Html.LabelFor(model => model.FirstNightRoomDesc)
+            <div class="detail">
+                @Html.DisplayFor(model => model.FirstNightRoomDesc)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            @Html.LabelFor(model => model.FirstNightPackage)
+            <div class="detail">
+                @Html.DisplayFor(model => model.FirstNightPackage)
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        @if (Model.HideRateOnArrival == false)
+        {
+            <div class="col-xs-6 col-md-6">
+                @Html.LabelFor(model => model.FirstNightRate)
+                <div class="detail">
+                    @Html.Raw("&pound;")
+                    @Html.DisplayFor(model => model.FirstNightRate)
+                </div>
+            </div>
+        } 
+        <div class="@(Model.HideRateOnArrival == true ? "col-xs-12 col-md-12" : "col-xs-6 col-md-6")">
+            @Html.LabelFor(model => model.Deposit)
+            <div class="detail">
+                @Html.Raw("&pound;")
+                @Html.DisplayFor(model => model.Deposit)
+            </div>
+        </div>
+    </div>
+    @if (Model.HideRateOnArrival == false)
+    {
+        <div class="row">
+            <div class="col-xs-12 col-md-12">
+                @Html.LabelFor(model => model.Balance)
+                <div class="detail">
+                    @Html.Raw("&pound;")
+                    @Html.DisplayFor(model => model.Balance)
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (string.IsNullOrEmpty(mode))
+{
+    using (Html.BeginForm("ConfirmBookingDetails", "CheckIn", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <div class="yes-no-ques">
+            <text>Are these booking details correct?</text>
+            <div class="form-group">
+                <div class="radio-inline">
+                    @Html.RadioButton("Answer", "Yes")
+                    @Html.Label("Yes")
+                </div>
+                <div class="radio-inline">
+                    @Html.RadioButton("Answer", "No")
+                    @Html.Label("No")
+                </div>
+            </div>
+        </div>
+        <hr />
+        <footer>
+            <div class="back-btn">
+                @Html.ActionLink("Back", "ContactDetails", "CheckIn", new { @class = "btn btn-primary" })
+            </div>
+            <div class="proceed-btn">
+                <input type="submit" value="Proceed" class="btn btn-primary" id="proceedBtn" />
+            </div>
+        </footer>
+    }
+}
+else
+{
+    <hr />
+    <footer>
+        <div class="back-btn">
+            @Html.ActionLink("Back", "ContactDetails", "CheckIn", new { @class = "btn btn-primary" })
+        </div>
+        <div class="proceed-btn">
+            @Html.ActionLink("Proceed", "InternationalDetails", "CheckIn", new { @class = "btn btn-primary" })
+        </div>
+    </footer>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        $('#proceedBtn').toggle()
+
+        $('input[name="Answer"]').on('change', function () {
+            if ($("input:radio[name='Answer']").is(":checked")) {
+                $('#proceedBtn').show()
+            }
+        }).change();
+    </script>
+}

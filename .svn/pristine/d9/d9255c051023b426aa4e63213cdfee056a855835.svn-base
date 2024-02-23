@@ -1,0 +1,16 @@
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace HouseKeeperWebAppTest.Models
+{
+    public class MaidStatus
+    {
+        public int MaidStatusID { get; set; }
+
+        public string MStatus { get; set; }
+    }
+}

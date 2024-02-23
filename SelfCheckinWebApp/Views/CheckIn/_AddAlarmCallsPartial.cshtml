@@ -1,0 +1,38 @@
+﻿@model SelfCheckinWebApp.ViewModels.AddAlarmCallViewModel
+
+@{ 
+    ViewBag.Title = "_AddAlarmCallsPartial";
+}
+
+<div class="s4-headers">
+    <div class="alarms-title">Alarm Calls</div>
+</div>
+<div class="alarmcalls-container">
+    @using (Html.BeginForm("AddAlarmCall", "CheckIn", FormMethod.Post, new { @id = "addAlarmCall", @class = "s4b-alarm-calls" }))
+    {
+        @Html.HiddenFor(m => m.BookingID)
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                @Html.Label("Select a date", new { @class = "control-label col-xs-8 col-sm-4 col-md-4" })
+                <div class="col-xs-12 col-sm-8 col-md-7">
+                    @Html.DropDownListFor(model => model.SelectedDate, Model.StayDatesSelect, "", new { @id = "alarmDate", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.SelectedDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.Label("Select a time", new { @class = "control-label col-xs-8 col-sm-4 col-md-4" })
+                <div class="col-xs-12 col-sm-8 col-md-7">
+                    @Html.DropDownListFor(model => model.SelectedTime, new SelectList(ViewBag.AlarmTimes), "", new { @id = "alarmTime", @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.SelectedTime, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="btn-add-alarm">
+            <div class="form-group">
+                <input type="submit" value="ADD" class="btn btn-primary" />
+            </div>
+        </div>
+    }
+</div>

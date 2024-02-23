@@ -1,0 +1,81 @@
+﻿@model IEnumerable<HouseKeeperWebAppTest.Models.Room>
+
+@{
+    ViewBag.Title = "Arrivals";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="arrivals-title">
+    <h3>Arrivals</h3>
+</div>
+<div class="search">
+    <a href="#" data-toggle="modal" data-target="#searchForm"><i class="glyphicon glyphicon-search" aria-hidden="true"></i></a>
+</div>
+
+<table class="table" id="arrivals">
+    <thead>
+        <tr>
+            <th class="CellRmNo">
+                @Html.DisplayNameFor(model => model.RoomNo)
+            </th>
+            <th class="CellName">Name</th>
+            <th class="CellStatus">@Html.DisplayNameFor(model => model.RoomStatus)</th>
+            <th class="CellMStatus">@Html.DisplayNameFor(model => model.MaidStatus)</th>
+            <th class="CellDepart">@Html.DisplayNameFor(model => model.Booking.Depart)</th>
+            <th class="CellNights">Nights</th>
+            <th class="CellOccupants">
+                @Html.DisplayNameFor(model => model.Booking.Adults)/@Html.DisplayNameFor(model => model.Booking.Child)
+            </th>
+            <th class="CellAges">@Html.DisplayNameFor(model => model.Booking.ChildAges)</th>
+            <th class="CellMakeup">@Html.DisplayNameFor(model => model.Booking.RoomMakeup)</th>
+            <th class="CellReqts">
+                @Html.DisplayNameFor(model => model.Booking.CotReqd)/@Html.DisplayNameFor(model => model.Booking.EBReqd)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td class="CellRmNo">
+                    @Html.DisplayFor(modelItem => item.RoomNo)
+                </td>
+                @if (item.Booking.Forename == "")
+                {
+                    <td class="CellName">
+                        @Html.DisplayFor(modelItem => item.Booking.Surname)
+                    </td>
+                }
+                else
+                {
+                    <td class="CellName">
+                        @Html.DisplayFor(modelItem => item.Booking.Surname),
+                        @Html.DisplayFor(modelItem => item.Booking.Forename)
+                    </td>
+                }
+                <td class="CellStatus">
+                    @Html.DisplayFor(modelItem => item.RoomStatus)
+                </td>
+                <td class="CellMStatus">
+                    @Html.DisplayFor(modelItem => item.MaidStatus)
+                </td>
+                <td class="CellDepart">@Html.DisplayFor(modelItem => item.Booking.Depart)</td>
+                <td class="CellNights">@Html.DisplayFor(modelItem => item.Booking.NightsTotal)</td>
+                <td class="CellOccupants">
+                    @Html.DisplayFor(modelItem => item.Booking.Adults) /
+                    @Html.DisplayFor(modelItem => item.Booking.Child)
+                </td>
+                <td class="CellAges">@Html.DisplayFor(modelItem => item.Booking.ChildAges)</td>
+                <td class="CellMakeup">@Html.DisplayFor(modelItem => item.Booking.RoomMakeup)</td>
+                <td class="CellReqts">
+                    @Html.DisplayFor(modelItem => item.Booking.CotReqd) /
+                    @Html.DisplayFor(modelItem => item.Booking.EBReqd)
+                </td>
+                <td>
+                    @Html.ActionLink("Check In", "Find", "CheckIn", new { id = item.BookingID, surname = item.Booking.Surname }, null)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

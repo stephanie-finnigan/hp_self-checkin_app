@@ -1,0 +1,12 @@
+﻿@model SelfCheckinWebApp.ViewModels.BookingViewModel
+@{ 
+
+}
+<div class="modal-header">
+    <h3 class="modal-title" id="bkgNotesLabel">Booking Notes</h3>
+    <button type="button" class="close clickable" data-dismiss="modal" aria-hidden="true">&times;</button>
+</div>
+
+<div class="bkg-notes-prl modal-body disabled" id="notes-container">
+    @Html.DisplayFor(model => model.BookingNotes)
+</div>

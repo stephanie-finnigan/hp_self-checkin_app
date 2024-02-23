@@ -1,0 +1,93 @@
+﻿@model SelfCheckinWebApp.ViewModels.AddNewspapersViewModel
+
+<div class="s4-headers">
+    <div class="papers-title">Newspapers</div>
+</div>
+
+<div class="newspapers-container">
+    @using (Html.BeginForm("AddNewspaper", "CheckIn", FormMethod.Post, new { @id = "addNewspaper", @class = "s4a-newspapers" }))
+    {
+        @Html.HiddenFor(m => m.BookingID)
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.DateSelected, new { @class = "control-label col-xs-8 col-sm-4 col-md-4" })
+                <div class="col-xs-12 col-sm-8 col-md-7">
+                    @Html.DropDownListFor(model => model.DateSelected, Model.StayDatesSelect, "", new { @id = "newsDate", @class = "form-control", @onchange = "FillPapers()" })
+                    @Html.ValidationMessageFor(model => model.DateSelected, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.SelectedPapers, new { @class = "control-label col-xs-10 col-sm-4 col-md-4" })
+                <div class="col-xs-12 col-sm-8 col-md-7">
+                    @Html.ListBoxFor(model => model.SelectedPapers, new MultiSelectList(Enumerable.Empty<SelectListItem>(), "NewspaperID", "Description"), new { @id = "newspapers", @class = "form-control", multiple = "multiple" })
+                    @Html.ValidationMessageFor(model => model.SelectedPapers, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <div class="same-daily" id="sameDailyChbx">
+            <div class="form-group">
+                <div class="checkbox-inline">
+                    @Html.CheckBoxFor(model => model.SameDaily)
+                    @Html.LabelFor(model => model.SameDaily)
+                </div>
+            </div>
+        </div>
+        <div class="btn-add-papers">
+            <div class="form-group">
+                <input type="submit" value="ADD" class="btn btn-primary" />
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            $('#sameDailyChbx').toggle();
+
+            function FillPapers() {
+                var url = '@(Url.Action("FillPapers", "CheckIn"))';
+                var data = {
+                    Newspapers: '@(Model.Newspapers)',
+                    DateSelected: $('#newsDate').val()
+                };
+                dailyChbox();
+
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    data: data,
+                    dataType: "json",
+                    error: function () {
+                        alert("An error occured.");
+                    },
+                    success: function (data) {
+                        $('#newspapers').html("");
+                        for (var paper in data) {
+                            $('#newspapers').append(
+                                $('<option></option>').val(data[paper].NewspaperID).html(data[paper].Description));
+                        }
+                    }
+                });
+            }
+
+            function dailyChbox() {
+                var d = parseDMY($('#newsDate').val());
+                if (d !== null) {
+                    if (d.getDay() === 6 || d.getDay() === 0) {
+                        $('#sameDailyChbx').hide();
+                    }
+                    else {
+                        $('#sameDailyChbx').show();
+                    }
+                }
+            }
+
+            function parseDMY(value) {
+                var date = value.split("/");
+                var d = parseInt(date[0], 10),
+                    m = parseInt(date[1], 10),
+                    y = parseInt(date[2], 10);
+                return new Date(y, m - 1, d);
+            }
+        </script>
+    }
+</div>

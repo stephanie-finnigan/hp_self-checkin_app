@@ -1,0 +1,154 @@
+﻿@model SelfCheckinWebApp.ViewModels.BookingViewModel
+
+@{
+    ViewBag.Title = "Contact Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.BookingID)
+        @Html.DisplayFor(model => model.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+<div class="profile-name">
+    <i class="glyphicon glyphicon-user"></i>
+    <div class="fullname">
+        @if (Model.Forename == " " || string.IsNullOrEmpty(Model.Forename))
+        {
+            @Model.Title @Model.Surname
+        }
+        else
+        {
+            @Model.FullName
+        }
+    </div>
+</div>
+<div class="contact-header">
+    <div class="col-xs-12 col-md-12 contact-title">Contact Details&nbsp;<a href="#" data-toggle="modal" data-target="#editContactProfileForm"><i class="glyphicon glyphicon-edit" aria-hidden="true"></i></a></div>
+</div>
+<div class="profile-info">
+    @foreach (var profile in Model.Contact.Profiles)
+    {
+        if (profile.ProfileID == Model.ProfileIDToUse)
+        {
+            <div class="row">
+                <div class="col-xs-12 col-md-12">
+                    @Html.LabelFor(modelProfile => profile.Address.GetDisplayAddress)
+                    <div class="detail" id="ctAddress">
+                        @Html.Raw(profile.Address.GetDisplayAddress)
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-6 col-md-6">
+                    @Html.LabelFor(modelProfile => profile.Mobile)
+                    <div class="detail" id="ctMobile">
+                        @if (string.IsNullOrEmpty(profile.Mobile))
+                        {
+                            @Html.Raw("None")
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelProfile => profile.Mobile)
+                        }
+                    </div>
+                </div>
+                <div class="col-xs-6 col-md-6">
+                    @Html.LabelFor(modelProfile => profile.Telephone)
+                    <div class="detail" id="ctTelephone">
+                        @if (string.IsNullOrEmpty(profile.Telephone))
+                        {
+                            @Html.Raw("None")
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelProfile => profile.Telephone)
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-md-12">
+                    @Html.LabelFor(modelProfile => profile.Email1)
+                    <div class="detail" id="ctEmail1">
+                        @if (string.IsNullOrEmpty(profile.Email1))
+                        {
+                            @Html.Raw("None")
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelProfile => profile.Email1)
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@using (Html.BeginForm("NotYouQuestion", "CheckIn", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="yes-no-ques">
+        <text>Are these details correct for this booking?</text>
+        <div class="form-group">
+            <div class="radio-inline">
+                @Html.RadioButton("Answer", "Yes")
+                @Html.Label("Yes")
+            </div>
+            <div class="radio-inline">
+                @Html.RadioButton("Answer", "No")
+                @Html.Label("No")
+            </div>
+        </div>
+    </div>
+    <hr />
+    <footer>
+        <div class="back-btn">
+            @if (string.IsNullOrEmpty(mode))
+            {
+                @Html.ActionLink("Cancel", "LogOffRedirect", "CheckIn", new { @id = "backBtn", @class = "btn btn-primary" })
+            }
+        </div>
+        <div class="proceed-btn">
+            <input type="submit" value="Proceed" class="btn btn-primary" />
+        </div>
+    </footer>
+}
+
+<div class="modal fade" id="editContactProfileForm" tabindex="-1" role="dialog" aria-labelledby="editContactProfileFormLabel" aria-hidden="true">
+    <div class="modal-dialog-edit-contact" role="form">
+        <div class="modal-content">
+            @foreach (var profile in Model.Contact.Profiles)
+            {
+                if (profile.ProfileID == Model.ProfileIDToUse)
+                {
+                    Html.RenderPartial("_EditContactProfilePartial", profile, new ViewDataDictionary { { "ContactID", Model.Contact.ContactID } });
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $('.proceed-btn').toggle();
+        $('input[name="Answer"]').on('change', function () {
+            if ($("input:radio[name='Answer']").is(":checked")) {
+                $('.proceed-btn').show();
+            }
+        }).change();
+    </script>
+}

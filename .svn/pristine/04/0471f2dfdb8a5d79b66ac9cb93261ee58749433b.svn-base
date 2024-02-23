@@ -1,0 +1,65 @@
+﻿@model SelfCheckinWebApp.ViewModels.BookingViewModel
+
+@{
+    ViewBag.Title = "DinnerReservation";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.BookingID)
+        @Html.DisplayFor(model => model.BookingID)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+
+@using (Html.BeginForm("DinnerYesNoQues", "CheckIn", FormMethod.Post, new { @class = "s5-dinner" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="yes-no-ques">
+        <text>Would you like to book a dinner reservation?</text>
+        <div class="form-group">
+            <div class="radio-inline">
+                @Html.RadioButton("Answer", "Yes", new { @id = "selectedYes" })
+                @Html.Label("Yes")
+            </div>
+            <div class="radio-inline">
+                @Html.RadioButton("Answer", "No", new { @id = "selectedNo" })
+                @Html.Label("No")
+            </div>
+        </div>
+    </div>
+    <hr />
+    <footer>
+        <div class="back-btn">
+            @Html.ActionLink("Back", "NewspapersAlarmCalls", "CheckIn", new { @class = "btn btn-primary" })
+        </div>
+        <div class="proceed-btn">
+            <input type="submit" value="Proceed" class="btn btn-primary" />
+        </div>
+    </footer>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        $('.proceed-btn').toggle()
+
+        $('input[name="Answer"]').on('change', function () {
+            if ($("input:radio[name='Answer']").is(":checked")) {
+                $('.proceed-btn').show()
+            }
+        }).change();
+    </script>
+}
+
+

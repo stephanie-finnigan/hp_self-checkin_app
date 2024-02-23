@@ -1,0 +1,69 @@
+﻿using System;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin;
+using Microsoft.Owin.Security.Cookies;
+using Owin;
+using System.Diagnostics.CodeAnalysis;
+using NLog;
+using System.Diagnostics;
+
+namespace SelfCheckinWebApp
+{
+    [ExcludeFromCodeCoverage]
+    public partial class Startup
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        public void ConfigureAuth(IAppBuilder app)
+        {
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                LoginPath = new PathString("/CheckIn/Find"),
+                Provider = new CookieAuthenticationProvider
+                {
+                    OnApplyRedirect = ApplyRedirect
+                }
+            });
+        }
+
+        private static void ApplyRedirect(CookieApplyRedirectContext context)
+        {
+            Uri absoluteUri;
+            if (Uri.TryCreate(context.RedirectUri, UriKind.Absolute, out absoluteUri))
+            {
+                log.Debug("Original redirect: " + absoluteUri.ToString());
+                var originalRequestPath = context.Request.Path.ToString().TrimStart('/');
+                var firstSlashIndex = originalRequestPath.IndexOf('/');
+                var siteName = originalRequestPath.Substring(0, firstSlashIndex);
+
+                var builder = new UriBuilder();
+                if (Debugger.IsAttached)
+                {
+                    builder = new UriBuilder(absoluteUri.Scheme, absoluteUri.Host, absoluteUri.Port,
+                                             string.Format("{0}/{1}", siteName, absoluteUri.AbsolutePath.TrimStart('/')),
+                                             absoluteUri.Query);
+                }
+                else
+                {
+                    var slashIndex = absoluteUri.AbsolutePath.TrimStart('/').IndexOf('/');
+                    var subFolder = absoluteUri.AbsolutePath.TrimStart('/').Substring(0, slashIndex);
+                    var remainingPath = absoluteUri.AbsolutePath.TrimStart('/').Substring(4);
+
+                    builder = new UriBuilder(absoluteUri.Scheme, absoluteUri.Host, absoluteUri.Port,
+                                             string.Format("{0}/{1}/{2}", subFolder, siteName, remainingPath),
+                                             absoluteUri.Query);
+                }
+
+                var newRedirect = builder.ToString();
+
+                context.RedirectUri = newRedirect;
+
+                log.Debug("New redirect: " + newRedirect);
+            }
+            context.Response.Redirect(context.RedirectUri);
+        }
+    }
+
+    
+}

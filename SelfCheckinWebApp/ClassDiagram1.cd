@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="SelfCheckinWebApp.Models.Address">
+    <Position X="0.5" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAAgAAgAAAEAAAAAQAAAIAAAAAAAAAgAAQAAA=</HashCode>
+      <FileName>Models\Address.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SelfCheckinWebApp.Models.Booking" Collapsed="true">
+    <Position X="4.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEgghAQAIAAYIMgAKAoBABAgBAQAAAEgAAACSAAAAAI=</HashCode>
+      <FileName>Models\Booking.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Contact" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Newspapers" />
+      <Property Name="GuestReminders" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="SelfCheckinWebApp.Models.Contact">
+    <Position X="3.25" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAQEAAAAAAAkAAAAAAAAAIAAAAAAEAAAAAAAAAAAg=</HashCode>
+      <FileName>Models\Contact.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Profiles" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="SelfCheckinWebApp.Models.GuestReminder" Collapsed="true">
+    <Position X="7.25" Y="1" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Nested Types" Collapsed="false" />
+    </Compartments>
+    <NestedTypes>
+      <Enum Name="SelfCheckinWebApp.Models.GuestReminder.eReminderType" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Models\GuestReminder.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAQAAAAAAIAAAAAAAAAAAAAABAAAAAAAAAAAEAAQA=</HashCode>
+      <FileName>Models\GuestReminder.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SelfCheckinWebApp.Models.Newspaper">
+    <Position X="7" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAoAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Newspaper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SelfCheckinWebApp.Models.ContactProfile">
+    <Position X="0.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAQAAgCAAAAAAAAAAAAAAAAAAAACCAIAAAAAAgAA=</HashCode>
+      <FileName>Models\ContactProfile.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Address" />
+    </ShowAsAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

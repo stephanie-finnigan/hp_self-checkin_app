@@ -1,0 +1,123 @@
+﻿using SelfCheckinWebApp.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace SelfCheckinWebApp.Models
+{
+    public class Booking
+    {
+        [DataType(DataType.PhoneNumber, ErrorMessage = "*Must be a number")]
+        [Display(Name = "Reservation Number")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "*Must be a number")]
+        [Required(ErrorMessage = "*Reservation Number is required")]
+        public int BookingID { get; set; }
+
+        public DateTime Arrival { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Departure")]
+        [DisplayFormat(DataFormatString = "{0:dd/MM}")]
+        public DateTime Depart { get; set; }
+
+        public string Title { get; set; }
+
+        public string Forename { get; set; }
+
+        //[RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "*Must contain only letters")]
+        [Required(ErrorMessage = "*Surname is required")]
+        public string Surname { get; set; }
+
+        public string FullName
+        {
+            get
+            {
+                return Title + (Surname).Trim() + ", " + Forename;
+            }
+        }
+        public string CheckInNotes { get; set; }
+
+        public string Notes { get; set; }
+
+        [Display(Name = "Ad")]
+        public int Adults { get; set; }
+
+        [Display(Name = "Ch")]
+        public int Child { get; set; }
+
+        [Display(Name = "Ch Age")]
+        public string ChildAges { get; set; }
+
+        [Display(Name = "Cots")]
+        public int CotReqd { get; set; }
+
+        [Display(Name = "EB")]
+        public int EBReqd { get; set; }
+
+        [Display(Name = "Rm Makeup")]
+        public string RoomMakeup { get; set; }
+
+        public string FirstNightRoomNo { get; set; }
+
+        public string FirstNightRoomDesc { get; set; }
+
+        public DateTime ETA { get; set; }
+
+        public int ContactID { get; set; }
+        public virtual Contact Contact { get; set; }
+
+        public Contact NewContact { get; set; }
+
+        public int ProfileIDToUse { get; set; }
+
+        public List<Newspaper> Newspapers { get; set; }
+
+        public List<GuestReminder> GuestReminders { get; set; }
+
+        public string FirstNightPackage { get; set; }
+
+        public decimal FirstNightRate { get; set; }
+
+        public decimal Deposit { get; set; }
+
+        public decimal Balance { get; set; }
+
+        public decimal TotalCost { get; set; }
+
+        public bool HideRateOnArrival { get; set; }
+
+        public List<DinnerReservation> DinnerReservations { get; set; }
+
+        public string VehicleRegistration { get; set; }
+
+        public string TurndownReqd { get; set; }
+
+        public string SendInvoice { get; set; }
+
+        public bool FastCheckout { get; set; }
+
+        public bool TermsAgree { get; set; }
+
+        public int StateID { get; set; }
+
+        public int SubStateID { get; set; }
+
+        public string CheckInMode { get; set; }
+
+        public int NightsTotal
+        {
+            get
+            {
+                return CalcTotalNights();
+            }
+        }
+
+        private int CalcTotalNights()
+        {
+            TimeSpan total = Depart.Subtract(Arrival);
+            return Math.Abs(total.Days);
+        }
+    }
+}

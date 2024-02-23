@@ -1,0 +1,42 @@
+﻿@model SelfCheckinWebApp.Models.Booking
+@using SelfCheckinWebApp.Helpers
+@{
+    ViewBag.Title = "Find Booking";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var site = Request.GetRequestSiteName();
+    var resId = ViewBag.ReservationId;
+    var surname = ViewBag.Surname;
+    var mode = ViewBag.Mode;
+}
+
+<div class="row">
+    <img class="branding-image" src="~/Content/@site/logo.svg" />
+</div>
+
+<div class="row-find">
+    @using (Html.BeginForm("Find", "CheckIn", new { returnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.BookingID, new { @class = "col-md-5 col-lg-5 control-label" })
+            <div class="col-xs-12 col-md-7 col-lg-7">
+                @Html.TextBoxFor(model => model.BookingID, new { @class = "form-control", @Value = resId })
+                @Html.ValidationMessageFor(model => model.BookingID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Surname, new { @class = "col-md-5 col-lg-5 control-label" })
+            <div class="col-xs-12 col-md-7 col-lg-7">
+                @Html.TextBoxFor(model => model.Surname, new { @class = "form-control", @Value = surname })
+                @Html.ValidationMessageFor(model => model.Surname, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-xs-12 col-md-12 col-lg-12">
+                <input type="submit" value="@(string.IsNullOrEmpty(mode) ? "Find My Booking" : "Proceed")" class="btn btn-default" />
+            </div>
+        </div>
+    }
+</div>

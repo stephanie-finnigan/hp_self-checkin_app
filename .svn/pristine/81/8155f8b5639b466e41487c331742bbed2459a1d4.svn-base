@@ -1,0 +1,135 @@
+﻿using NLog;
+using SelfCheckinWebApp.App_Start;
+using SelfCheckinWebApp.Principal;
+using StackExchange.Profiling;
+using StackExchange.Profiling.EntityFramework6;
+using StackExchange.Profiling.Mvc;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Web;
+using System.Web.Helpers;
+using System.Web.Mvc;
+using System.Web.Optimization;
+using System.Web.Routing;
+using System.Web.Script.Serialization;
+using System.Web.Security;
+
+namespace SelfCheckinWebApp
+{
+    public class MvcApplication : HttpApplication
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        protected void Application_Start()
+        {
+            AreaRegistration.RegisterAllAreas();
+            FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
+            RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
+            AutoMapperConfig.Configure();
+            AntiForgeryConfig.UniqueClaimTypeIdentifier = ClaimTypes.Name;
+
+            // Accept all certificates even if they are invalid
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => { return true; };
+
+            MiniProfilerEF6.Initialize();
+            GlobalFilters.Filters.Add(new ProfilingActionFilter());
+            var ignored = MiniProfiler.Settings.IgnoredPaths.ToList();
+            ignored.Add("/__browserLink/");
+            MiniProfiler.Settings.IgnoredPaths = ignored.ToArray();
+
+            var copy = ViewEngines.Engines.ToList();
+            ViewEngines.Engines.Clear();
+            foreach (var item in copy)
+            {
+                ViewEngines.Engines.Add(new ProfilingViewEngine(item));
+            }
+
+            log.Debug("App startup finished");
+        }
+
+        protected void Application_PostAuthenticateRequest(Object sender, EventArgs e)
+        {
+            HttpCookie authCookie = Request.Cookies[FormsAuthentication.FormsCookieName];
+
+            if (authCookie == null)
+            {
+                log.Debug("No auth cookie");
+            }
+            else
+            {
+                bool isOkToLogin;
+
+                FormsAuthenticationTicket authTicket = FormsAuthentication.Decrypt(authCookie.Value);
+
+                JavaScriptSerializer serializer = new JavaScriptSerializer();
+
+                GuestCheckInSerializeModel serializeModel = serializer.Deserialize<GuestCheckInSerializeModel>(authTicket.UserData);
+
+                GuestCheckInPrincipal newUser = new GuestCheckInPrincipal(authTicket.Name);
+                newUser.BookingId = serializeModel.BookingId;
+                newUser.Surname = serializeModel.Surname;
+                newUser.ArrivalDate = serializeModel.ArrivalDate;
+                newUser.SiteName = serializeModel.SiteName;
+
+                // Capture siteName from URL 
+                string urlSiteName;
+                if (Debugger.IsAttached)
+                {
+                    var fullPath = Request.Path.TrimStart('/');
+                    var firstSlashIndex = fullPath.IndexOf('/');
+                    // Check when URL has no parameters after slash
+                    if (firstSlashIndex == -1)
+                    {
+                        firstSlashIndex = 0;
+                        urlSiteName = fullPath.Substring(0, firstSlashIndex);
+                    }
+                    else
+                    {
+                        urlSiteName = fullPath.Substring(0, firstSlashIndex);
+                    }
+                }
+                else
+                {
+                    urlSiteName = Request.Url.Segments.ElementAt(2).TrimEnd('/');
+                }
+
+                log.Debug("Url Sitename: " + urlSiteName);
+
+                // Check whether URL siteName matches User siteName and if Arrival Date is passed Today's Date
+                var isSiteNameOk = newUser.SiteName == urlSiteName || string.IsNullOrEmpty(urlSiteName) || urlSiteName == "__browserLink";
+                bool isArrivalDateOk = (DateTime.UtcNow.Date - newUser.ArrivalDate).Days < 1;
+
+                isOkToLogin = isSiteNameOk && isArrivalDateOk;
+
+                if (isOkToLogin)
+                {
+                    HttpContext.Current.User = newUser;
+                }
+                // ToDo: Need to add error message that's passed to next method and displayed to user.
+                else
+                {
+                    Request.Cookies.Remove(FormsAuthentication.FormsCookieName); 
+                }
+
+                log.Debug("Auth cookie: bookingid {0}, surname {1}", newUser.BookingId, newUser.Surname);
+            }
+        }
+
+        protected void Application_BeginRequest()
+        {
+            if (Request.IsLocal)
+            {
+                MiniProfiler.Start();
+            }
+        }
+
+        protected void Application_EndRequest()
+        {
+            MiniProfiler.Stop();
+        }
+    }
+}

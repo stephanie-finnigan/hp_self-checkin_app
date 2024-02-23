@@ -1,0 +1,968 @@
+﻿/**********OFFICE/DEVELOPMENT**********/
+
+/*****GLOBAL STYLING*****/
+
+body {
+    font-family: Verdana;
+    font-size: 14px;
+    line-height: 1.428571429;
+    color: #333333;
+    background-color: #ffffff;
+    padding-bottom: 40px;
+}
+
+footer {
+    width: 100%;
+    display: inline-flex;
+}
+
+img {
+    margin: auto;
+    border: none;
+}
+
+.back-btn {
+    width: 100%;
+    margin: auto;
+}
+
+.btn-add-papers, .btn-add-alarm, .btn-add-resvn {
+    text-align: center;
+}
+
+.contact-title {
+    font-weight: bold;
+}
+
+.proceed-btn {
+    float: right;
+}
+
+.row-gdpr .checkbox label {
+    padding-left: 10px;
+    font-weight: bold;
+}
+
+.s4-headers {
+    width: 100%;
+    text-align: center;
+}
+
+h2,
+.h2 {
+    font-weight: bold;
+}
+
+h3,
+.h3 {
+    font-weight: bold;
+    margin-top: 10px;
+}
+h4,
+.h4 {
+    font-weight: bold;
+}
+
+h5,
+.h5 {
+    font-weight: bold;
+}
+
+h6,
+.h6 {
+    font-weight: bold;
+}
+
+hr {
+  margin-bottom: 10px;
+  margin-top: 10px;
+  border-top: 1px solid #ccc;
+}
+
+.bkg-info {
+    width: 100%;
+    margin: auto;
+    display: inline-flex;
+}
+.bkg-info label {
+    display: inline;
+    font-size: 20px;
+}
+
+.bkg-ref {
+    width: 100%;
+    margin: auto;
+    font-size: 20px;
+}
+
+.bkg-rm {
+    width: 100%;
+    margin: auto;
+    text-align: right;
+    font-size: 20px;
+}
+
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.btn {
+    font-size: 18px;
+    font-weight: bold;
+    border: 1px solid #333;
+}
+.btn-default {
+    color: #333;
+    background-color: #ccc;
+    border-color: #333;
+    float: right;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.detail {
+    width: 100%;
+    text-align: center;
+    font-size: 15px;
+}
+
+.disabled {
+    pointer-events: none;
+    cursor: default;
+    opacity: 0.6;
+}
+
+.dl-horizontal dt {
+    white-space: normal;
+}
+
+.form-control {
+    margin: auto;
+    border: 1px solid #bbb;
+}
+
+.profile-name {
+    width: 100%;
+    display: inline-flex;
+    margin: auto;
+}
+
+.profile-name i {
+    margin-right: 5px;
+}
+
+.radio-inline {
+    padding-left: 35px;
+    margin-top: 10px;
+}
+
+.radio-inline label, .checkbox-inline label {
+    padding-left: 7px;
+}
+
+.radio-inline + .radio-inline {
+    margin-top: 10px;
+}
+
+.radio-inline input[type="radio"],
+.checkbox input[type="checkbox"],
+.checkbox-inline input[type="checkbox"] {
+    transform: scale(2);
+}
+
+.row {
+    width: 100%;
+    margin: auto;
+    display: inline-block;
+}
+
+.valdn-msg {
+    font-size: 16px;
+    color: red;
+}
+
+.validation-summary-errors {
+    width: 70%;
+    margin: auto;
+    font-size: 16px;
+}
+.validation-summary-errors ul {
+    -webkit-padding-start: 20px;
+}
+
+.yes-no-ques text {
+    font-weight: bold;
+}
+
+/*****NAVBAR*****/
+header {
+    margin: auto;
+    color: #999;
+    font-size: 24px;
+}
+
+.container-fluid {
+  height: 60px;
+}
+
+.container-fluid > .navbar-header {
+    width: 100%;
+    display: inline-flex;
+    height: 60px;
+}
+
+.navbar {
+    font-size: 18px;
+    font-weight: bold;
+    position: relative;
+    min-height: 60px;
+    margin-bottom: 10px;
+    border: 1px solid;
+    border-radius: 4px;
+    box-shadow: 0 6px 5px -5px #333;
+}
+
+.navbar-inverse {
+    background-color: #004e9e;
+}
+
+/*Assisted Arrivals View*/
+.arrivals-title {
+    width: 100%;
+    display: inline-flex;
+    margin-bottom: 10px;
+}
+
+.arrivals-title h3 {
+    margin: auto;
+    margin-top: 5px;
+    width: auto;
+}
+
+/*****STEP 0: FIND BOOKING VIEW*****/
+.branding-image {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    height: 140px;
+}
+.col-md-10 {
+    margin: auto;
+}
+
+.col-md-10 label {
+    display: inline-block;
+}
+
+.row-find {
+    width: 60%;
+    margin: auto;
+    padding-top: 15px;
+}
+
+.row-find label {
+    margin-bottom: 0;
+}
+
+.row-find .control-label {
+    font-size: 18px;
+}
+
+.row-find .form-horizontal .form-control {
+    height: auto;
+    font-size: 17px;
+}
+.row-find .form-horizontal .form-group {
+    margin-bottom: 20px;
+}
+
+/*****STEP 1: VERIFY CONTACT DETAILS VIEW*****/
+.contact-header {
+    width: 100%;
+    margin: auto;
+    display: inline-flex;
+    padding-bottom: 5px;
+}
+
+.contact-title {
+    text-align: center;
+    font-size: 24px;
+}
+
+.fullname {
+    font-size: 20px;
+}
+
+.glyphicon.glyphicon-edit {
+    font-size: x-large;
+    color: #004e9e;
+}
+
+.glyphicon.glyphicon-user {
+    border: 1.5px solid;
+    font-size: x-large;
+    font-weight: bolder;
+}
+
+.profile-info {
+    width: 60%;
+    margin: auto;
+}
+
+.profile-info .col-xs-3, .profile-info .col-xs-4, .profile-info .col-xs-5, .profile-info .col-xs-6 {
+    padding-right: 0;
+    padding-left: 0;
+}
+.profile-info .col-md-4, .profile-info .col-md-6, .profile-info .col-md-12 {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #eee;
+    padding: 3px;
+}
+.profile-info .col-md-4 label, .profile-info .col-md-6 label, .profile-info .col-md-12 label {
+    width: 100%;
+    display: inline-block;
+    text-align: center;
+    font-size: 16px;
+}
+
+.yes-no-ques {
+    font-size: 16px;
+    text-align: center;
+    margin: auto;
+}
+
+/***STEP 1A: EDIT CONTACT MODAL***/
+.close {
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 1;
+    color: #333;
+    opacity: 4;
+}
+
+.edit-ct-form .form-control {
+    height: 35px;
+    padding: 4px 6px;
+    font-size: 16px;
+}
+
+.modal-dialog-edit-contact {
+    position: relative;
+    width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 40px;
+}
+
+.modal-footer {
+    padding: 10px 15px 0 15px;
+    text-align: center;
+    border-top: none;
+}
+
+.modal-header {
+    padding: 10px 10px;
+    border-bottom: 1px solid #333;
+}
+
+.modal-header .close {
+    width: auto;
+    margin: auto;
+}
+
+.modal-title {
+    display: inline;
+}
+
+
+/***STEP 1B CREATE NEW CONTACT FORM***/
+.contact-info, .ct-profile-info {
+    width: 65%;
+    margin: auto;
+}
+.contact-info label, .ct-profile-info label {
+    text-align: right;
+}
+.create-ct-form .form-control {
+    height: 35px;
+    padding: 4px 8px;
+    font-size: 16px;
+}
+.gdpr-title {
+    width: 100%;
+    text-align: center;
+    margin-top: 15px;
+}
+.page-header {
+    width: 100%;
+    margin: 10px 0 20px;
+    display: inline-flex;
+}
+.page-header h3 {
+    width: auto;
+    margin: auto;
+}
+.row-is-ba {
+    text-align: center;
+    margin: auto;
+}
+.row-is-ba .checkbox-inline label {
+    padding-top: 0;
+}
+.row-gdpr {
+    width: 45%;
+    margin: auto;
+}
+.row-gdpr .checkbox-inline {
+    padding-top: 10px;
+    padding-left: 30px;
+}
+.row-gdpr .col-md-12 {
+    float: none;
+}
+
+/*****STEP 2: BOOKING DETAILS VERIFY VIEW*****/
+.booking-info {
+    width: 60%;
+    margin: auto;
+}
+.booking-info .col-md-4, .booking-info .col-md-6, .booking-info .col-md-12 {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #eee;
+}
+.booking-info .col-md-4 label, .booking-info .col-md-6 label, .booking-info .col-md-12 label {
+    width: 100%;
+    text-align: center;
+    font-size: 16px;
+}
+.details-header {
+    width: 100%;
+    margin: auto;
+    display: inline-flex;
+}
+.details-title {
+    width: auto;
+    margin: auto;
+    font-size: 24px;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+.row-room-term {
+    width: 100%;
+    display: inline-block;
+    margin: auto;
+}
+
+/*****END PROCESS VIEW*****/
+.btn-exit {
+    width: 100%;
+    margin: auto;
+    text-align: center;
+}
+.btn-exit .btn {
+    padding: 6px 24px;
+    font-size: 18px;
+}
+.row-end-process p {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/*****STEP 3 INTERNATIONAL/PASSPORT*****/
+.passport-info-form {
+    width: 60%;
+    margin: auto;
+}
+
+/*****STEP 4 NEWSPAPERS/ALARM CALLS*****/
+.newspapers-container, .alarmcalls-container {
+    width: 60%;
+    margin: auto;
+}
+.papers-title, .alarms-title {
+    font-size: 24px;
+    font-weight: bold;
+    padding-bottom: 5px;
+}
+.s4a-newspapers .form-control, .s4b-alarm-calls .form-control {
+    font-size: 16px;
+}
+/***NEWSPAPERS***/
+.same-daily {
+    width: 38%;
+    margin: auto;
+}
+.same-daily label {
+    margin-left: 5px;
+}
+/***ALARM CALLS***/
+
+/*****STEP 5 DINNER QUESTION & RESERVATION FORM*****/
+.dinner-resvn-form {
+    width: 61%;
+    margin: auto;
+    padding-top: 10px;
+}
+.dinner-resvn-form .form-control {
+    height: 35px;
+    font-size: 16px;
+}
+.reservns-container {
+    width: 60%;
+    margin: auto;
+
+}
+.resvn-form-title {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/*****STEP 6 BOOKING EXTRAS*****/
+.chkin-notes .control-label {
+    text-align: left;
+}
+.extras {
+    width: 60%;
+    margin: auto;
+}
+.extras .checkbox-inline, .extras .radio-inline {
+    padding-left: 39px;
+}
+.extras .radio-inline + .radio-inline {
+    margin-top: 0;
+}
+.extras-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.fast-chkout {
+    text-align: center;
+}
+.veh-reg .form-control, .eta .form-control {
+    font-size: 15px;
+}
+/*****STEP 7 FINAL & MARKETING PREFERENCES*****/
+.marktg-final .row-gdpr {
+    padding-top: 5px;
+}
+.terms-agree {
+    text-align: center;
+    padding-top: 30px;
+}
+.terms-agree .control-label {
+    padding-top: 0;
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991px) {
+    .bkg-info label {
+        font-size: 16px;
+    }
+    .bkg-ref, .bkg-rm {
+        font-size: 16px;
+    }
+    /*.booking-info .col-md-4, .booking-info .col-md-6, .booking-info .col-md-12,*/
+    .profile-info .col-md-4, .profile-info .col-md-6, .profile-info .col-md-12 {
+        padding: 5px;
+    }
+    .col-sm-10 {
+        margin: auto;
+    }
+    .yes-no-ques text {
+        font-size: 16px;
+    }
+
+    /****S1 VERIFY CONTACT INFORMATION****/
+    .fullname {
+        padding-top: 5px;
+        font-size: 16px;
+    }
+    .profile-info {
+        width: 60%;
+        margin: auto;
+    }
+    /***STEP 1B CREATE NEW CONTACT FORM***/
+    .contact-info .col-xs-12 {
+        text-align: left;
+    }
+    .ct-profile-info .checkbox-inline input[type="checkbox"] {
+        margin: 4px 0 0 15px;
+    }
+    .ct-profile-info .form-group {
+        margin-bottom: 5px;
+    }
+    .gdpr-title h4 {
+        width: 100%;
+        text-align: center;
+    }
+    .row-is-ba {
+        width: 65%;
+    }
+    .row-is-ba .checkbox-inline label {
+        padding-left: 40px;
+    }
+    .row-gdpr {
+        width: 60%;
+        margin: auto;
+    }
+    .row-gdpr .col-xs-12 {
+        float: none;
+    }
+    /****S2 VERIFY BOOKING INFORMATION****/
+    .booking-info {
+        width: 70%;
+    }
+    /*.row-end-process {
+        width: 60%;
+        margin: auto;
+    }*/
+
+    /*****STEP 3 INTERNATIONAL/PASSPORT*****/
+    
+    
+    /*****S4 ADD NEWSPAPERS & ALARM CALLS*****/
+    .newspapers-container,
+    .alarmcalls-container {
+        width: 60%;
+        margin: auto;
+    }
+    
+    /**NEWSPAPERS**/
+    .same-daily {
+        width: 100%;
+        text-align: center;
+    }
+    
+    /**ALARM CALLS**/
+
+    /*****S5 DINNER RESERVATION QUESTION*****/
+    .dinner-ques-form {
+        width: 50%;
+    }
+
+    /*****S5 BOOKING EXTRAS*****/
+    .extras {
+        width: 70%;
+    }
+    .extras-title {
+        font-size: 24px;
+    }
+    .veh-reg .col-sm-6 {
+        width: 40%;
+        padding-right: 0;
+    }
+
+    /*****STEP 6 BOOKING EXTRAS*****/
+    .fast-chkout {
+        width: 48%;
+    }
+
+    /*****STEP 7 GDPR & FINAL QUESTION*****/
+    .terms-agree .control-label {
+        padding-top: 0;
+    }
+}
+
+/*****MOBILE PHONE SIZING*****/
+@media only screen and (max-width: 767px) {
+    h5,
+    .h5 {
+        font-size: 18px;
+    }
+    header {
+        margin-top: -8px;
+    }
+    .bkg-info label {
+        font-size: 15px;
+    }
+    .bkg-ref, .bkg-rm {
+        width: 100%;
+        font-size: 15px;
+    }
+    .branding-image {
+        height: 80px;
+    }
+    .btn.btn-default {
+        width: 100%;
+        font-size: 20px;
+        padding: 6px 10px;
+    }
+    .btn.btn-primary {
+        font-size: 16px;
+        padding: 6px 10px;
+    }
+    .btn-exit .btn {
+        font-size: 16px;
+    }
+    .CellDepart, .CellNights, .CellOccupants, 
+    .CellAges, .CellMakeup, .CellReqts {
+        display: none;
+    }
+    .container-fluid {
+        height: 55px;
+    }
+    .container-fluid > .navbar-header {
+        margin: auto;
+    }
+    .detail {
+        font-size: 14px;
+    }
+    .row-find {
+        width: 100%;
+    }
+    .validation-summary-errors {
+        width: 100%;
+    }
+    .yes-no-ques {
+        font-size: 15px;
+    }
+    /****S1 VERIFY CONTACT INFORMATION****/
+    .contact-header {
+        padding-bottom: 0;
+    }
+    .contact-header .col-xs-11 {
+        padding-right: 0;
+    }
+    .contact-title {
+        font-size: 20px;
+    }
+    .fullname {
+        font-size: 15px;
+    }
+    .glyphicon.glyphicon-user {
+        border: 1.5px solid;
+        font-size: large;
+    }
+    .profile-info {
+        width: 90%;
+    }
+    .profile-info .col-md-4 label, .profile-info .col-md-6 label, .profile-info .col-md-12 label {
+        font-size: 14px;
+    }
+    /****CREATE NEW CONTACT FORM****/
+    .contact-info, .ct-profile-info {
+        width: 90%;
+        margin: auto;
+    }
+    .contact-info label, .ct-profile-info label {
+        margin-bottom: 1px;
+    }
+    .contact-info select {
+        height: 34px;
+        border-radius: 4px;
+    }
+    .contact-info .col-xs-12 {
+        text-align: left;
+    }
+    .contact-info .form-group, .ct-profile-info .form-group {
+        margin-bottom: 10px;
+    }
+    .create-ct-form .row-gdpr {
+        width: 30%;
+        margin: auto;
+    }
+    .create-ct-form .row-gdpr .checkbox-inline {
+        margin: auto;
+        display: block;
+    }
+    .create-ct-form .row-gdpr .col-xs-12 {
+        margin: auto;
+        float: none;
+    }
+    .ct-profile-info .checkbox-inline {
+        padding-left: 0;
+    }
+    .ct-profile-info .checkbox-inline input[type="checkbox"] {
+        margin-left: 15px;
+    }
+    .mps-title {
+        width: 100%;
+        margin-top: 15px;
+    }
+    .mps-title h4 {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    .row .checkbox input[type="checkbox"] {
+        margin-left: 0;
+    }
+    .row .checkbox label {
+        font-weight: bold;
+        font-size: 13px;
+    }
+    .row-is-ba .checkbox-inline label {
+        padding-left: 43px;
+    }
+    .new-addr-header h4 {
+        padding-top: 5px;
+        padding-bottom: 3px;
+    }
+    .new-addr-header {
+        width: 100%;
+        text-align: center;
+        text-decoration: underline;
+    }
+
+    /****EDIT CONTACT FORM****/
+    .modal-body .form-horizontal h5 {
+        width: 100%;
+        text-align: center;
+        text-decoration: underline;
+        margin-top: 0;
+    }
+    .modal-body .form-horizontal .control-label {
+        margin-bottom: 0;
+        font-size: 13px;
+    }
+    .modal-body .form-control {
+        font-size: 14px;
+    }
+    .modal-body .form-group {
+        margin-bottom: 10px;
+    }
+    .modal-dialog-edit-contact {
+        position: relative;
+        width: auto;
+        margin: 20px;
+    }
+
+    /****S2 VERIFY BOOKING INFORMATION****/
+    .booking-info {
+        width: 90%;
+    }
+    .booking-info .col-xs-3 label, .booking-info .col-xs-4 label, .booking-info .col-xs-5 label,
+    .booking-info .col-xs-6 label, .booking-info .col-xs-12 label {
+        font-size: 14px;
+    }
+    .booking-info .col-xs-3, .booking-info .col-xs-4, .booking-info .col-xs-5, .booking-info .col-xs-6 {
+        padding: 0;
+    }
+    .details-title {
+        font-size: 20px;
+        padding-bottom: 0;
+    }
+
+    /*****END PROCESS VIEW*****/
+    .row-end-process {
+        width: 100%;
+        margin: auto;
+    }
+    .row-end-process h3 {
+        text-align: center;
+    }
+    /****S3 INTERNATIONAL/PASSPORT****/
+    .passport-info-form {
+        width: 90%;
+    }
+    .passport-info-form label {
+        margin-bottom: 0;
+    }
+
+    /****S4 NEWSPAPERS, ALARM CALLS, REMINDERS****/
+    .newspapers-container, .alarmcalls-container {
+        width: 90%;
+    }
+    .papers-title, .alarms-title {
+        font-size: 20px;
+    }
+    .s4a-newspapers .form-group,
+    .s4b-alarm-calls .form-group {
+        margin-bottom: 10px;
+    }
+    .table {
+        margin-bottom: 5px;
+    }
+    .table > tbody > tr > td {
+        padding: 3px 6px;
+    }
+    /** NEWSPAPERS **/
+    .same-daily {
+        width: 100%;
+        text-align: center;
+    }
+
+    /**ALARM CALLS**/
+    .row-alarms {
+        width: 100%;
+        margin: auto;
+        display: inline-flex;
+    }
+    .row-alarms .form-control {
+        display: inline-flex;
+        padding: 3px 3px;
+    }
+    .row-alarms .form-group .col-md-10 {
+        width: 100%;
+        margin: auto;
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+    .s4a-newspapers .control-label, .s4b-alarm-calls .control-label {
+        font-size: 14px;
+        margin-bottom: 0;
+    }
+
+    /*****S5 DINNER RESERVATION QUESTION*****/
+    .dinner-resvn-form {
+        width: 90%;
+    }
+    .dinner-resvn-form label {
+        margin-bottom: 0;
+    }
+    .dinner-resvn-form .form-control {
+        height: 34px;
+        font-size: 14px;
+    }
+    .reservns-container {
+        width: 90%;
+    }
+    .resvn-form-title {
+        font-size: 20px;
+    }
+    
+    /****S6 BOOKING EXTRAS****/
+    .eta {
+        margin-top: 0;
+    }
+    .extras {
+        width: 95%;
+    }
+    .extras-title {
+        font-size: 20px;
+    }
+    .fast-chkout {
+        width: 78%;
+    }
+    .send-invoice {
+        text-align: center;
+        margin: auto;
+    }
+    .turndown-reqd {
+        text-align: center;
+        margin: auto;
+    }
+    .veh-reg label, .chkin-notes label, .eta label {
+        margin-bottom: 0;
+    } 
+
+    /****S7 MARKETING & FINAL QUESTION****/
+    .gdpr-title h3 {
+        font-size: 20px;
+    }
+    .marktg-final .row-gdpr {
+        width: 30%;
+        margin: auto;
+    }
+    .marktg-final .row-gdpr .checkbox-inline {
+        margin: auto;
+        display: block;
+    }
+}

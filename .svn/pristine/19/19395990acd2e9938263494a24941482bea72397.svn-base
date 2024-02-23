@@ -1,0 +1,31 @@
+﻿@using SelfCheckinWebApp.Enums
+@{
+    ViewBag.Title = "Pre-CheckIn Complete";
+    var site = ViewBag.site;
+
+    var featureSwitchValues = ViewBag.featureSwitchValues;
+    var completeMsgVal = featureSwitchValues[FeatureSwitchEnum.CompleteMsg];
+}
+
+<div class="row-end-process">
+    <p>
+        @{
+            string[] result = completeMsgVal.Split(new string[] { "." }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string str in result)
+            {
+                @(str + ".")
+                <br />
+            }
+        }
+    </p>
+</div>
+<br />
+<div class="btn-exit">
+    @Html.ActionLink("Return to Find My Booking", "Find", "CheckIn", new { @class = "btn btn-primary" })
+</div>
+<br />
+<br />
+<div class="row">
+    <img class="branding-image" src="~/Content/@site/logo.svg" />
+</div>

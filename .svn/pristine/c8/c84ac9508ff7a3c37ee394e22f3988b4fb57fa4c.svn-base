@@ -1,0 +1,117 @@
+﻿IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[UserLogin]') AND type in (N'U'))
+BEGIN
+	DROP TABLE [dbo].[UserLogin]
+END
+GO
+	CREATE TABLE [dbo].[UserLogin] (
+		[Id]             INT          IDENTITY (1, 1) NOT NULL,
+		[Username]       VARCHAR (50) NOT NULL,
+		[Application]	 VARCHAR (50) NOT NULL,
+		[LoginFailCount] INT          NOT NULL,
+		[LastFail]       DATETIME         NOT NULL,
+		PRIMARY KEY CLUSTERED ([Id] ASC)
+	);
+GO
+
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Site]') AND type in (N'U'))
+BEGIN
+	DROP TABLE [dbo].[Site]
+END
+GO
+	CREATE TABLE [dbo].[Site] (
+		[Id]   INT           IDENTITY (1, 1) NOT NULL,
+		[Name] VARCHAR (MAX) NOT NULL,
+		PRIMARY KEY CLUSTERED ([Id] ASC)
+	);
+GO
+
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[FeatureSwitch]') AND type in (N'U'))
+BEGIN
+	DROP TABLE [dbo].[FeatureSwitch]
+END
+GO
+	CREATE TABLE [dbo].[FeatureSwitch] (
+		[Id]     INT           IDENTITY (1, 1) NOT NULL,
+		[Name]   NVARCHAR (50) NOT NULL,
+		PRIMARY KEY CLUSTERED ([Id] ASC)
+	);
+GO
+
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[SiteFeatureSwitch]') AND type in (N'U'))
+BEGIN
+	DROP TABLE [dbo].[SiteFeatureSwitch]
+END
+GO
+	CREATE TABLE [dbo].[SiteFeatureSwitch] (
+		[Id]     INT           IDENTITY (1, 1) NOT NULL,
+		[SiteId] INT           NOT NULL,
+		[FeatureSwitchId] INT NOT NULL,
+		[AppMode]NVARCHAR (50) NULL,
+		[Value] NVARCHAR (MAX) NOT NULL,
+		PRIMARY KEY CLUSTERED ([Id] ASC),
+		FOREIGN KEY ([SiteId]) REFERENCES [dbo].[Site] ([Id]),
+		FOREIGN KEY ([FeatureSwitchId]) REFERENCES [dbo].[FeatureSwitch] ([Id])
+	);
+GO
+
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[vwFeatureSwitches]') AND type in (N'V', N'VM')) BEGIN
+	DROP VIEW [dbo].[vwFeatureSwitches]
+END
+
+GO
+
+	CREATE VIEW [dbo].[vwFeatureSwitches] AS
+				SELECT dbo.SiteFeatureSwitch.SiteId, dbo.Site.Name AS SiteName, dbo.FeatureSwitch.Name AS FeatureSwitchName, dbo.SiteFeatureSwitch.AppMode AS FeatureSwitchMode, dbo.SiteFeatureSwitch.Value
+				FROM dbo.FeatureSwitch INNER JOIN
+					dbo.SiteFeatureSwitch ON dbo.FeatureSwitch.Id = dbo.SiteFeatureSwitch.FeatureSwitchId INNER JOIN
+					dbo.Site ON dbo.SiteFeatureSwitch.SiteId = dbo.Site.Id;
+GO
+
+SET IDENTITY_INSERT [dbo].[Site] ON 
+IF NOT EXISTS (SELECT * FROM Site WHERE Id = 1) INSERT [dbo].[Site] ([Id], [Name]) VALUES (1, N'Office');
+IF NOT EXISTS (SELECT * FROM Site WHERE Id = 2) INSERT [dbo].[Site] ([Id], [Name]) VALUES (2, N'StMichaels')
+SET IDENTITY_INSERT [dbo].[Site] OFF
+GO
+
+SET IDENTITY_INSERT [dbo].[FeatureSwitch] ON 
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 1) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (1, N'Turndown');
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 2) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (2, N'Pre-Auth')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 3) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (3, N'DinnerResvn')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 5) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (5, N'CheckinCompleteMsg')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 6) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (6, N'IncorrectDetailsMsg')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 7) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (7, N'DinnerTimes')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 8) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (8, N'TCHotelLink')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 9) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (9, N'BkgCost')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 10) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (10, N'ExtrasAccount')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 11) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (11, N'PayingOnDepart')
+IF NOT EXISTS (SELECT * FROM FeatureSwitch WHERE Id = 12) INSERT [dbo].[FeatureSwitch] ([Id], [Name]) VALUES (12, N'DinnerDisclaimer')
+SET IDENTITY_INSERT [dbo].[FeatureSwitch] OFF
+GO
+
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 1) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 1, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 2) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 2, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 3) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 3, N'S', N'true');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 5) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 5, N'', N'Thank you for completing our online check-in.
+If you have any further queries with your booking, please contact the hotel on 03126 99999.We look forward to welcoming you.');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 6) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 6, N'', N'Thank you for acknowledging a problem with your booking.
+On arrival please go to reception and we will be able to correct your booking details.');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 7) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 7, N'', N'18:00,19:00,20:00,21:00,22:00');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 8) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 8, N'', N'TestTestTest');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 9) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 9, N'', N'first');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 10) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 10, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 11) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 11, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 1 AND FeatureSwitchId = 12) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (1, 12, N'', N'NB: Please note these are requested times only.');
+
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 1) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 1, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 2) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 2, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 3) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 3, N'A', N'true');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 5) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 5, N'', N'Thank you for completing our online check-in.
+If you have any further queries with your booking, please contact the hotel on 03126 312707.We look forward to welcoming you to St. Michaels Hotel.');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 6) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 6, N'', N'Thank you for acknowledging a problem with your booking.
+On arrival please go to reception and we will be able to correct your booking details.');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 7) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 7, N'', N'18:30,19:00,19:30,20:00,20:30,21:00');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 8) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 8, N'', N'https://www.stmichaelshotel.co.uk/accommodation-terms-and-conditions/');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 9) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 9, N'', N'total');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 10) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 10, N'', N'false');
+IF NOT EXISTS (SELECT * FROM SiteFeatureSwitch WHERE SiteId = 2 AND FeatureSwitchId = 11) INSERT [dbo].[SiteFeatureSwitch] ([SiteId], [FeatureSwitchId], [AppMode], [Value]) VALUES (2, 11, N'', N'false');
+GO

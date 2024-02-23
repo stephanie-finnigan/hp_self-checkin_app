@@ -1,0 +1,59 @@
+﻿using System;
+using Microsoft.AspNet.Identity;
+using Microsoft.Owin;
+using Microsoft.Owin.Security.Cookies;
+using Owin;
+using System.Diagnostics.CodeAnalysis;
+using NLog;
+
+namespace SelfCheckinWebApp
+{
+    [ExcludeFromCodeCoverage]
+    public partial class Startup
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        public void ConfigureAuth(IAppBuilder app)
+        {
+            app.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
+                LoginPath = new PathString("/CheckIn/Find"),
+                Provider = new CookieAuthenticationProvider
+                {
+                    OnApplyRedirect = ApplyRedirect
+                }
+            });
+        }
+
+        private static void ApplyRedirect(CookieApplyRedirectContext context)
+        {
+            Uri absoluteUri;
+            if (Uri.TryCreate(context.RedirectUri, UriKind.Absolute, out absoluteUri))
+            {
+                log.Debug("Original redirect: " + absoluteUri.ToString());
+                var originalRequestPath = context.Request.Path.ToString().TrimStart('/');
+                var firstSlashIndex = originalRequestPath.IndexOf('/');
+                var siteName = originalRequestPath.Substring(0, firstSlashIndex);
+
+                log.Debug("Host: " + absoluteUri.Host);
+                log.Debug("Site: " + siteName);
+                log.Debug("Absolute: " + absoluteUri.AbsolutePath.TrimStart('/'));
+                log.Debug("Query: " + absoluteUri.Query);
+
+                var builder = new UriBuilder(absoluteUri.Scheme, absoluteUri.Host, absoluteUri.Port,
+                                             string.Format("{0}/{1}", siteName, absoluteUri.AbsolutePath.TrimStart('/')),
+                                             absoluteUri.Query);
+                var newRedirect = builder.ToString();
+
+                context.RedirectUri = newRedirect;
+
+                log.Debug("New redirect: " + newRedirect);
+            }
+
+            context.Response.Redirect(context.RedirectUri);
+        }
+    }
+
+    
+}

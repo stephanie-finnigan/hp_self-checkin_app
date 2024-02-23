@@ -1,0 +1,92 @@
+﻿using NLog;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+namespace SelfCheckinWebApp.Helpers
+{
+    public class APIHelpers
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        //private static string baseUrl = "http://localhost:52859/api/";
+        public static string baseUrl = "";
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="urlMethod">e.g. RoomsAPI</param>
+        /// <returns></returns>
+        public static async Task<IEnumerable<T>> LoadListFromAPI<T>(string urlMethod)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", "Basic123345");
+            //log.Debug("Connecting to {0}", baseUrl + urlMethod);
+            var response = await client.GetAsync(baseUrl + urlMethod);
+
+            var dumpedResponse = await response.Content.ReadAsStringAsync();
+            log.Trace(dumpedResponse);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<IEnumerable<T>>();
+            }
+            throw new Exception(dumpedResponse);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="urlMethod">e.g. RoomsAPI</param>
+        /// <returns></returns>
+        public static async Task<T> LoadSingleFromAPI<T>(string urlMethod)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", "Basic123345");
+            //log.Debug("Connecting to {0}", baseUrl + urlMethod);
+
+            var response = await client.GetAsync(baseUrl + urlMethod);
+
+            var dumpedResponse = await response.Content.ReadAsStringAsync();
+            log.Trace(dumpedResponse);
+
+            if (response.StatusCode == HttpStatusCode.OK)
+            {
+                return await response.Content.ReadAsAsync<T>();
+            }
+            else if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return default(T);
+            }
+
+            throw new Exception(dumpedResponse);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="urlMethod">e.g. RoomsAPI</param>
+        /// <returns></returns>
+        public static async Task PutSingleToAPI<T>(string urlMethod, T entity)
+        {
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Authorization", "Basic123345");
+            //log.Debug("Connecting to {0}", baseUrl + urlMethod);
+
+            var response = await client.PostAsJsonAsync(baseUrl + urlMethod, entity);
+
+            var dumpedResponse = await response.Content.ReadAsStringAsync();
+            log.Trace(dumpedResponse);
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new Exception(dumpedResponse);
+            }
+        }
+    }
+}

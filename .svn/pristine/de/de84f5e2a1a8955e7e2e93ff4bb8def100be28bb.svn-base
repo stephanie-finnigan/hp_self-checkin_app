@@ -1,0 +1,49 @@
+﻿using Newtonsoft.Json;
+using SelfCheckinWebApp.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace HouseKeeperWebAppTest.Models
+{
+    public class Room
+    {
+        public int RoomID { get; set; }
+
+        [Display(Name = "Rm")]
+        public string RoomNo { get; set; }
+
+        public string RoomName { get; set; }
+
+        // Foreign Keys with objects
+        public int BookingID { get; set; }
+        public Booking Booking { get; set; }
+
+        public int RoomStatusID { get; set; }
+        [JsonIgnore]
+        public virtual RoomStatus Status { get; set; }
+
+        public int RoomTypeID { get; set; }
+        [JsonIgnore]
+        public virtual RoomType Type { get; set; }
+
+        public int MaidStatusID { get; set; }
+        [JsonIgnore]
+        public virtual MaidStatus MStatus { get; set; }
+
+        [NotMapped]
+        [Display(Name = "Rm Status")]
+        public string RoomStatus { get; set; }
+
+        [NotMapped]
+        [Display(Name = "Type")]
+        public string RoomType { get; set; }
+
+        [NotMapped]
+        [Display(Name = "Maid Status")]
+        public string MaidStatus { get; set; }
+    }
+}

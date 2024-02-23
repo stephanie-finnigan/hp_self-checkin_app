@@ -1,0 +1,18 @@
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace HouseKeeperWebAppTest.Models
+{
+    public class RoomStatus
+    {
+        public int ID { get; set; }
+        [JsonProperty(PropertyName = "RoomStatus")]
+        public string RStatus { get; set; }
+
+        public virtual List<Room> Rooms { get; set; }
+    }
+}

@@ -1,0 +1,114 @@
+﻿@model SelfCheckinWebApp.ViewModels.InternationalDetailsViewModel
+
+@{
+    ViewBag.Title = "InternationalDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var mode = ViewBag.Mode;
+    const string answerYes = "Yes";
+    const string answerNo = "No";
+}
+
+<div class="bkg-info">
+    <div class="bkg-ref">
+        @Html.LabelFor(model => model.BookingId)
+        @Html.DisplayFor(model => model.BookingId)
+    </div>
+    @if (!string.IsNullOrEmpty(mode))
+    {
+        <div class="bkg-rm">
+            @Html.LabelFor(model => model.FirstNightRoomNo)
+            @Html.DisplayFor(model => model.FirstNightRoomNo)
+        </div>
+    }
+</div>
+<hr />
+
+@using (Html.BeginForm("InternationalDetails", "CheckIn", FormMethod.Post, new { @id = "InternationalForm" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(m => m.BookingId)
+
+    <div class="yes-no-ques">
+        <text>Are you visiting from overseas?</text>
+        <div class="form-group">
+            <div class="radio-inline">
+                @Html.RadioButtonFor(m => m.Answer, answerYes, new { @id = "selectedYes" })
+                @Html.Label("Yes")
+            </div>
+            <div class="radio-inline">
+                @Html.RadioButtonFor(m => m.Answer, answerNo, new { @id = "selectedNo" })
+                @Html.Label("No")
+            </div>
+        </div>
+    </div>
+    <div class="passport-info-form" id="passportInfoForm">
+        <div class="form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.PassportNum, htmlAttributes: new { @class = "control-label col-sm-5 col-md-5" })
+                <div class="col-sm-6 col-md-6">
+                    @Html.EditorFor(model => model.PassportNum, new { htmlAttributes = new { @id = "passportNum", @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.PassportNum, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.IssuingAuthority, htmlAttributes: new { @class = "control-label col-sm-5 col-md-5" })
+                <div class="col-sm-6 col-md-6">
+                    @Html.EditorFor(model => model.IssuingAuthority, new { htmlAttributes = new { @id = "issuingAuth", @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.IssuingAuthority, "", new { @class = "text-danger" })
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Nationality, htmlAttributes: new { @class = "control-label col-sm-5 col-md-5" })
+                <div class="col-sm-6 col-md-6">
+                    @Html.EditorFor(model => model.Nationality, new { htmlAttributes = new { @id = "nationality", @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Nationality, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <footer>
+        <div class="back-btn">
+            @Html.ActionLink("Back", "BookingDetails", "CheckIn", new { @class = "btn btn-primary" })
+        </div>
+        <div class="proceed-btn">
+            <input type="submit" value="Proceed" class="btn btn-primary" />
+        </div>
+    </footer>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        var isReturnFromPost = @(Model.Answer == null ? "false" : "true");
+
+        if (!isReturnFromPost) {
+            $('.proceed-btn').toggle()
+            $('#passportInfoForm').toggle();
+        } else {
+            var isPassportInfoFormVisible = @(Model.Answer == answerYes ? "true" : "false");
+            if (isPassportInfoFormVisible) {
+                $('#passportInfoForm').show();
+            } else {
+                $('#passportInfoForm').hide();
+            }
+        }
+
+        $('input[name="Answer"]').on('change', function () {
+            if ($("input:radio[name='Answer']").is(":checked")) {
+                $('.proceed-btn').show()
+            }
+        }).change();
+
+        $('#selectedYes').change(function () {
+            if ($(this).val() == "Yes") {
+                $('#passportInfoForm').show();
+            }
+        });
+        $('#selectedNo').change(function () {
+            if ($(this).val() == "No") {
+                $('#passportInfoForm').hide();
+            }
+        });
+    </script>
+}

@@ -1,0 +1,132 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace SelfCheckinWebApp.ViewModels
+{
+    public class BookingViewModel
+    {
+        [Display(Name = "Booking Ref:")]
+        public int BookingID { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime Arrival { get; set; }
+
+        [DataType(DataType.Date)]
+        [Display(Name = "Departure")]
+        public DateTime Depart { get; set; }
+
+        public string Title { get; set; }
+
+        public string Forename { get; set; }
+
+        public string Surname { get; set; }
+
+        // Display property only
+        [Display(Name = "Guest")]
+        public string FullName
+        {
+            get
+            {
+                return Title + (Surname).Trim() + ", " + Forename;
+            }
+        }
+
+        [DataType(DataType.MultilineText)]
+        [Display(Name = "Check In Notes")]
+        public string CheckInNotes { get; set; }
+
+        [DataType(DataType.MultilineText)]
+        public string Notes { get; set; }
+
+        [Display(Name = "Adults")]
+        public int Adults { get; set; }
+
+        [Display(Name = "Children")]
+        public int Child { get; set; }
+
+        [Display(Name = "Child Ages")]
+        public string ChildAges { get; set; }
+
+        public string FirstNightRoomNo { get; set; }
+
+        [Display(Name = "Room Type")]
+        public string FirstNightRoomDesc { get; set; }
+
+        [DataType(DataType.Time)]
+        public DateTime ETA { get; set; }
+        [Display(Name = "ETA to Hotel")]
+        public string SelectedETA { get; set; }
+
+        public int ContactID { get; set; }
+        public virtual ContactViewModel Contact { get; set; }
+        public ContactViewModel NewContact { get; set; }
+
+        public int ProfileIDToUse { get; set; }
+
+        // Newspapers Section
+        public List<NewspaperViewModel> Newspapers { get; set; }
+
+        // Reminders Section
+        public List<GuestReminderViewModel> GuestReminders { get; set; }
+
+        [Display(Name = "Hotel Terms")]
+        public string FirstNightPackage { get; set; }
+
+        [Display(Name = "1st Night Cost")]
+        public decimal FirstNightRate { get; set; }
+
+        [Display(Name = "Deposit Paid")]
+        public decimal Deposit { get; set; }
+
+        [Display(Name = "Balance Remaining")]
+        public decimal Balance { get; set; }
+
+        public bool HideRateOnArrival { get; set; }
+
+        public List<DinnerReservationViewModel> DinnerReservations { get; set; }
+
+        [Display(Name = "Vehicle Reg")]
+        public string VehicleRegistration { get; set; }
+
+        [Display(Name = "Turndown Service Required")]
+        public string TurndownReqd { get; set; }
+
+        [Display(Name = "Send Copy of Invoice by Email")]
+        public string SendInvoice { get; set; }
+
+        [Display(Name = "Fast Checkout")]
+        public bool FastCheckout { get; set; }
+
+        [Required(ErrorMessage = "Please tick to proceed with check in.")]
+        [Display(Name = "I Agree to Hotel Terms & Conditions")]
+        public bool TermsAgree { get; set; }
+
+        public int SubStateID { get; set; }
+
+        public string CheckInMode { get; set; }
+
+        [Display(Name = "No of Nights")]
+        public int NightsTotal
+        {
+            get
+            {
+                return CalcTotalNights();
+            }
+        }
+        private int CalcTotalNights()
+        {
+            TimeSpan total = Depart.Subtract(Arrival);
+            return Math.Abs(total.Days);
+        }
+
+        // S4A ADD NEWSPAPERS POST PARAMETER
+        public AddNewspapersViewModel AddNewspapers { get; set; }
+
+        // S4B ADD ALARM CALL POST PARAMETER
+        public AddAlarmCallViewModel AddAlarmCall { get; set; }
+    }
+}

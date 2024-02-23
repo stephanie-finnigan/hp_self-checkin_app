@@ -1,0 +1,21 @@
+﻿using SelfCheckinWebApp.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace SelfCheckinWebApp.DBModels
+{
+	public partial class GuestCheckInDBContext
+	{
+        public bool IsFeatureSwitchOn(FeatureSwitchEnum featureSwitchEnum, string siteName)
+        {
+            return this.SiteFeatureSwitches.Any(sfs => sfs.Site.Name == siteName && sfs.FeatureSwitchId == (int)featureSwitchEnum && sfs.Value == "true");
+        }
+
+        public Dictionary<FeatureSwitchEnum, string> GetFeatureSwitchValuesForSite(string siteName)
+        {
+            return this.SiteFeatureSwitches.Where(sfs => sfs.Site.Name == siteName).ToList().ToDictionary(x => (FeatureSwitchEnum)x.FeatureSwitchId, x => x.Value);
+        }
+    }
+}

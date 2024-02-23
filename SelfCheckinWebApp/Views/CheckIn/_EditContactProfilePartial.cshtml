@@ -1,0 +1,133 @@
+﻿@model SelfCheckinWebApp.ViewModels.ContactProfileViewModel
+@{ 
+    Model.ContactID = Convert.ToInt32(ViewData["ContactID"]);
+}
+<div class="modal-header">
+    <h3 class="modal-title" id="editContactProfileFormLabel">Edit Contact</h3>
+    <span class="close clickable" data-dismiss="modal" aria-hidden="true">&times;</span>
+</div>
+<div class="edit-ct-form modal-body" id="form-container">
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.ContactID)
+
+    <div class="form-horizontal">
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.AddressLine1, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.AddressLine1, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrLine1" } })
+                @Html.ValidationMessageFor(model => model.Address.AddressLine1, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.AddressLine2, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.AddressLine2, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrLine2" } })
+                @Html.ValidationMessageFor(model => model.Address.AddressLine2, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.AddressLine3, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.AddressLine3, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrLine3" } })
+                @Html.ValidationMessageFor(model => model.Address.AddressLine3, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.Town, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.Town, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrTown" } })
+                @Html.ValidationMessageFor(model => model.Address.Town, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.County, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.County, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrCounty" } })
+                @Html.ValidationMessageFor(model => model.Address.County, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.PostCode, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.PostCode, new { htmlAttributes = new { @class = "form-control", @style = "text-transform: uppercase", @id = "ecpAddrPostCode" } })
+                @Html.ValidationMessageFor(model => model.Address.PostCode, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address.Country, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Address.Country, new { htmlAttributes = new { @class = "form-control", @id = "ecpAddrCountry" } })
+                @Html.ValidationMessageFor(model => model.Address.Country, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.Telephone, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Telephone, new { htmlAttributes = new { @class = "form-control", @id = "ecpTelephone" } })
+                @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Mobile, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Mobile, new { htmlAttributes = new { @class = "form-control", @id = "ecpMobile" } })
+                @Html.ValidationMessageFor(model => model.Mobile, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Email1, htmlAttributes: new { @class = "control-label col-md-3" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Email1, new { htmlAttributes = new { @class = "form-control", @id = "ecpEmail1" } })
+                @Html.ValidationMessageFor(model => model.Email1, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <input type="submit" value="Save" class="btn btn-primary" onclick="saveEditedContactProfile()" />
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function saveEditedContactProfile() {
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            var postModel = {
+                ProfileID: @(Model.ProfileID),
+                ContactID: @(Model.ContactID),
+                AddressLine1: $('#ecpAddrLine1').val(),
+                AddressLine2: $('#ecpAddrLine2').val(),
+                AddressLine3: $('#ecpAddrLine3').val(),
+                Town: $('#ecpAddrTown').val(),
+                County: $('#ecpAddrCounty').val(),
+                PostCode: $('#ecpAddrPostCode').val(),
+                Country: $('#ecpAddrCountry').val(),
+                Telephone: $('#ecpTelephone').val(),
+                Mobile: $('#ecpMobile').val(),
+                Email1: $('#ecpEmail1').val(),
+                Email2: $('#ecpEmail2').val(),
+                __RequestVerificationToken: token
+            };
+            var url = '@(Url.Action("SaveEditedContactProfile", "CheckIn"))'
+
+            $.post(url, postModel,
+                function (data) {
+                    saveEditedContactProfileSuccess(data);
+                }
+            );
+        };
+        function saveEditedContactProfileSuccess(data) {
+            var GetDisplayAddress = data.GetDisplayAddress;
+            var Email1 = data.Email1;
+            var Telephone = data.Telephone;
+            var Mobile = data.Mobile;
+            $('#ctAddress').html(GetDisplayAddress);
+            $('#ctEmail1').html(Email1);
+            $('#ctTelephone').html(Telephone);
+            $('#ctMobile').html(Mobile);
+
+            $('#editContactProfileForm').modal('hide');
+        }
+</script>
+    

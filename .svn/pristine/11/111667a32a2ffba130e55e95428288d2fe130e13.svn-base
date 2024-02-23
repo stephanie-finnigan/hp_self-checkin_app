@@ -1,0 +1,53 @@
+﻿using HouseKeeperWebAppTest.Models;
+using NLog;
+using SelfCheckinWebApp.Helpers;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+
+namespace SelfCheckinWebApp.Controllers
+{
+    public class RoomsController : Controller
+    {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        // GET: Room
+        public async Task<ActionResult> Arrivals(string searchString, string searchBy)
+        {
+            try
+            {
+                var filter = "arrivals";
+
+                string siteName = Request.GetRequestSiteName();
+                Session["IPAddress"] = ConfigurationManager.AppSettings[siteName];
+                APIHelpers.baseUrl = "" + Session["IPAddress"];
+
+                var rooms = await APIHelpers.LoadListFromAPI<Room>("room/search/" + filter);
+                int id = Convert.ToInt32(Request["SearchBy"]);
+
+                if (!string.IsNullOrEmpty(searchString))
+                {
+                    switch (id)
+                    {
+                        case 0:
+                            rooms = rooms.Where(r => r.Booking.Surname.Contains(searchString));
+                            break;
+                        case 1:
+                            rooms = rooms.Where(r => r.RoomNo.Contains(searchString));
+                            break;
+                    }
+                }
+                return View("Arrivals", rooms);
+            }
+            catch (Exception e)
+            {
+                log.Error(e);
+                throw;
+            }
+        }
+    }
+}
